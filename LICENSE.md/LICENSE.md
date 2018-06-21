@@ -1,0 +1,1 @@
+Ja, wir sind lizensiert.
