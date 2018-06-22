@@ -1,0 +1,30 @@
+22.6.2018
+ Was wir gebrauchen könnten:
+
+
+GDV-Aufgaben
+
+ 1) Medien suchen (Bilder, Filme,) als Beispiele für Perspektive und Stimmung 
+ 2) Passende Tutorials suchen (siehe unten)
+ 3) Prototypen von einzelnen Elementen bauen und testen
+ 4) fertige Assets suchen
+ 5) Menü erstellen (UI, Funktionalität)
+ 6) GameOver Screen erstellen (Schriftart,...)
+ 7) Spielmechaniken überlegen
+ 8) Programmierung
+ 9) Audiomaterial suchen
+10) Postprocessing (Filter usw)
+11) Beleuchtung
+12) Modellierung (Spielfigur,Fallen,Altar,Klorolle, 
+13) Rigging (Spielfigur)
+14) Animation
+15) Particle Effects (Feuer, Atombombe)
+16) HUD bauen: Lebensanzeige
+17) Texturen und Materialien (Bumpmaps,...)
+
+zu 2)  
+  wie unterteilen wir die Spieleben in Reihen und Spalten? (TowerDefens Tutorial?)
+	wie Integrieren wir Fallen-Events?
+	wie generieren wie in Unity ein Labyrinth?
+	wie können wir die Spielfigur genau von einem zum nächsten Feld ziehen?
+	wie wird ein Feuer, eine Bombe erstellt?
