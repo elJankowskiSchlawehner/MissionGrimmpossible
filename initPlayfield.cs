@@ -10,8 +10,8 @@ public class initPlayfield : MonoBehaviour
 
     //Variablen
     //
-    public int height = 3;
-    public int width = 5;
+    public int height = 3;                                  // Hoehe des Spielfelds
+    public int width = 5;                                   // Breite des Spielfelds
 
     bool[,] tilesField;                                     /* verwaltet den Bodenplattentyp und gibt Spielfeldgroesse an
                                                                [y-Achse, x-Achse]
@@ -20,36 +20,37 @@ public class initPlayfield : MonoBehaviour
 
     private bool isLeft, isMid, isRight;                    // keine doppelten Schritte in die gleiche Richtung
 
-    public int maxPathLength = 0;                           // verhindert, dass die Pfadlaengen nicht zu gross werden
+    //public int maxPathLength = 0;                           // verhindert, dass die Pfadlaengen nicht zu gross werden
 
     // Use this for initialization
     void Start()
     {
         tilesField = new bool[height, width];               // initialisiert das Spielfeld
 
-        int currentPosX = (int)Random.Range(0, width);      // Startwert wird gewuerfelt, currentPos gibt den Pfadweg an, Index faengt bei Null an
-        int currentPosY = 0;                                // zaehlt die "Zeilen" des Arrays tilesField hoch
+        int currentPosX = (int)Random.Range(0, width);      // Startwert (X-Achse) wird gewuerfelt
+        int currentPosY = 0;                                // zaehlt die "Zeilen" des Arrays tilesField hoch, bei Start 0
 
-        tilesField[currentPosY, currentPosX] = isCorrectTile;
+        tilesField[currentPosY, currentPosX] = isCorrectTile;   // Startwert in das Spielfeld eintragen
 
-        // Schleife bricht ab, wenn in letzter Zeile ein Tile gesetzt wurde
+        // Schleife bricht ab, wenn in letzter Zeile des Arrays eine Bodenplatte gesetzt wurde
         while (currentPosY < (height - 1))
         {
             Debug.Log(currentPosX + ", " + currentPosY);
             int pathDirection;                              // speichert die moeglichen Richtungen des Pfades
             int pathLength;                                 // speichert die Laenge des Pfads in die gewuerfelte Richtung
+            int pathEnd;                                    // Abbruchbedingung for-Schleife
 
-            /* es werden die drei Moeglichkeiten abgedeckt (-1,0,1): links, rechts, gerade
+            /* es werden die drei Moeglichkeiten abgedeckt (-1,0,1): links, vorwaerts, rechts
                kann auch spaeter mit Chancen / Prozentwerten realisiert werden.
                Achtungen Random.Range: obere Grenze ist exklusiv
                Abfangen von Array out of Bounds
              */
-            if (currentPosX == 0)                           // Position ganz links --> nur Richtungen Mitte oder Rechts
+            if (currentPosX == 0)                           // Position ganz links --> nur Richtungen Mitte oder Rechts erlaubt
             {
                 Debug.Log("mr");
                 pathDirection = (int)Random.Range(0, 2);
             }
-            else if (currentPosX == (width - 1))            // Position ganz rechts --> nur Richtungen Mitte oder Links
+            else if (currentPosX == (width - 1))            // Position ganz rechts --> nur Richtungen Mitte oder Links erlaubt
             {
                 Debug.Log("lm");
                 pathDirection = (int)Random.Range(-1, 1);
@@ -64,12 +65,13 @@ public class initPlayfield : MonoBehaviour
             {
                 // PFADRICHTUNG LINKS
                 case -1:
-                    pathLength = (int)Random.Range(1, (currentPosX + 1)); // exklusive Grenze, deswegen + 1 !
+                    pathLength = (int)Random.Range(1, (currentPosX + 1));
                     Debug.Log("LINKS um " + pathLength);
 
-                    for (int indx = (currentPosX - 1); indx >= (currentPosX - pathLength); indx--)
+                    pathEnd = currentPosX - pathLength;
+                    for (int indx = (currentPosX - 1); indx >= pathEnd; indx--)
                     {
-                        Debug.Log(indx);
+                        Debug.Log("Indx: " + indx + ", Bedingung: indx >= " + "currPosX(" + currentPosX + ") - pathLength(" + pathLength + ")");
                         tilesField[currentPosY, indx] = isCorrectTile;
                         currentPosX = indx;
                     }
@@ -77,12 +79,13 @@ public class initPlayfield : MonoBehaviour
 
                 // PFADRICHTUNG VORWAERTS
                 case 0:
-                    pathLength = (int)Random.Range(1, (height - currentPosY)); // Pfadlaenge betraegt maximal die Differenz (exklusive Grenze!)
+                    pathLength = (int)Random.Range(1, (height - currentPosY));
                     Debug.Log("VORWAERTS um " + pathLength);
 
-                    for (int indx = (currentPosY + 1); indx <= (currentPosY + pathLength); indx++)
+                    pathEnd = currentPosY + pathLength;
+                    for (int indx = (currentPosY + 1); indx <= pathEnd; indx++)
                     {
-                        Debug.Log(indx);
+                        Debug.Log("Indx: " + indx + ", Bedingung: indx >= " + "currPosX(" + currentPosY + ") + pathLength(" + pathLength + ")");
                         tilesField[indx, currentPosX] = isCorrectTile;
                         currentPosY = indx;
                     }
@@ -90,12 +93,13 @@ public class initPlayfield : MonoBehaviour
 
                 // PFADRICHTUNG RECHTS
                 case 1:
-                    pathLength = (int)Random.Range(1, (width - currentPosX)); // exklusive Grenze, deswegen NICHT (width - 1) !
+                    pathLength = (int)Random.Range(1, (width - currentPosX));
                     Debug.Log("RECHTS um " + pathLength);
 
-                    for (int indx = (currentPosX + 1); indx <= (currentPosX + pathLength); indx++)
+                    pathEnd = currentPosX + pathLength;
+                    for (int indx = (currentPosX + 1); indx <= pathEnd; indx++)
                     {
-                        Debug.Log(indx);
+                        Debug.Log("Indx: " + indx + ", Bedingung: indx >= " + "currPosX(" + currentPosX + ") + pathLength(" + pathLength + ")"); ;
                         tilesField[currentPosY, indx] = isCorrectTile;
                         currentPosX = indx;
                     }
@@ -109,8 +113,6 @@ public class initPlayfield : MonoBehaviour
                     break;
             } // ENDE SWITCH
         } // ENDE WHILE
-
-        debugField();
 
         placeTiles();
     } // ENDE START - Feld fertig initialisiert und erstellt
