@@ -12,19 +12,14 @@ public class initPlayfield : MonoBehaviour
     //
     public int height = 3;                                  // Hoehe des Spielfelds
     public int width = 5;                                   // Breite des Spielfelds
+    bool[,] tilesField;                                     // [hoehe,breite], verwaltet den Bodenplattentyp und gibt Spielfeldgroesse an
 
-    bool[,] tilesField;                                     /* verwaltet den Bodenplattentyp und gibt Spielfeldgroesse an
-                                                               [y-Achse, x-Achse]
-                                                             */
     public GameObject tilePrefab;                           // prefab der Bodenplatten
-
-    private bool isLeft, isMid, isRight;                    // keine doppelten Schritte in die gleiche Richtung
-
-    //public int maxPathLength = 0;                           // verhindert, dass die Pfadlaengen nicht zu gross werden
 
     // Use this for initialization
     void Start()
     {
+
         tilesField = new bool[height, width];               // initialisiert das Spielfeld
 
         int currentPosX = (int)Random.Range(0, width);      // Startwert (X-Achse) wird gewuerfelt
@@ -32,89 +27,99 @@ public class initPlayfield : MonoBehaviour
 
         tilesField[currentPosY, currentPosX] = isCorrectTile;   // Startwert in das Spielfeld eintragen
 
-        int pathDirection = 0;                          // speichert die moeglichen Richtungen des Pfades, initial = 0 (vorwaerts)
-        int pathLength;                                 // speichert die Laenge des Pfads in die gewuerfelte Richtung
-        int pathEnd;                                    // Abbruchbedingung for-Schleife
+        int pathDirection = 0;                              // speichert die moeglichen Richtungen des Pfades, initial = 0 (vorwaerts)
+        int pathLength;                                     // speichert die Laenge des Pfads in die gewuerfelte Richtung
+        int pathEnd;                                        // Abbruchbedingung for-Schleife, ansonsten wird currentPosition in der Bedingung ueberschrieben
+        int maxForwardLength = (height / 3 + 1);            // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
 
-        bool isRight = false;
-        bool isLeft = false;
+        bool isRight = false, isLeft = false;               // geben die Richtung des letzten Schritts an
 
-        int heightCounter = 2;
+        int heightCounter = 1;                              // verhindert einen aufeinanderfolgenden links-rechts-Schritt, = 1, da Startwert als ein Schritt gilt, ansonsten = 2
 
         // Schleife bricht ab, wenn in letzter Zeile des Arrays eine Bodenplatte gesetzt wurde
         while (currentPosY < (height - 1))
         {
-            Debug.Log(currentPosX + ", " + currentPosY);
-
+            // welche Richtung wurde gewaehlt, Startwert ist immer vorwaerts
             switch (pathDirection)
             {
-                // PFADRICHTUNG LINKS
-                case -1:
-                    pathLength = (int)Random.Range(1, (currentPosX + 1));
-                    Debug.Log("LINKS um " + pathLength);
-
-                    pathEnd = currentPosX - pathLength;
-                    for (int indx = (currentPosX - 1); indx >= pathEnd; indx--)
-                    {
-                        tilesField[currentPosY, indx] = isCorrectTile;
-                        currentPosX = indx;
-                    }
-                    // naechste Pfadrichtung angeben
-                    pathDirection = 0;
-                    isLeft = true;
-                    break;
-
                 // PFADRICHTUNG VORWAERTS
                 case 0:
-                    pathLength = (int)Random.Range(1, (height - currentPosY));
-                    Debug.Log("VORWAERTS um " + pathLength);
+                    pathLength = (int)Random.Range(1, maxForwardLength);
+                    heightCounter -= pathLength;            // Hoehenunterschied durch Schritt berechnen
 
                     pathEnd = currentPosY + pathLength;
-                    for (int indx = (currentPosY + 1); indx <= pathEnd; indx++)
+                    for (int indx = (currentPosY + 1); indx <= pathEnd && currentPosY < (height - 1); indx++)
                     {
                         tilesField[indx, currentPosX] = isCorrectTile;
                         currentPosY = indx;
                     }
 
                     // naechste Pfadrichtung waehlen
-                    if (currentPosX == 0)                           // Position ganz links --> naechste Wegrichtung ist rechts
+                    if (heightCounter <= 0)
                     {
-                        pathDirection = 1;
+                        if (currentPosX == 0)                           // Position ganz links --> naechste Wegrichtung ist rechts
+                        {
+                            pathDirection = 1;
+                        }
+                        else if (currentPosX == (width - 1))            // Position ganz rechts --> neachste Wegrichtung ist links
+                        {
+                            pathDirection = -1;
+                        }
+                        else                                            // ansonsten wuerfel aus, ob links oder rechts
+                        {
+                            pathDirection = (Random.Range(0f, 1f) < 0.5f) ? pathDirection = -1 : pathDirection = 1;
+                        }
+                        isLeft = false;
+                        isRight = false;
                     }
-                    else if (currentPosX == (width - 1))            // Position ganz rechts --> neachste Wegrichtung ist links
+                    else
                     {
-                        pathDirection = -1;
-                    }
-                    else                                            // ansonsten wuerfel aus, ob links oder rechts
-                    {
-                        pathDirection = (Random.Range(0f, 1f) < 0.5f) ? pathDirection = -1 : pathDirection = 1;
+                        if (isLeft && currentPosX != 0)
+                        {
+                            pathDirection = Random.Range(-1, 1);
+                        }
+                        else if (heightCounter > 0 && isRight && currentPosX != (width - 1))
+                        {
+                            pathDirection = Random.Range(0, 2);
+                        }
+                        // ansonsten bleibt pathDirection unveraendert, muss nicht abgefragt werden
                     }
                     break;
 
-                // PFADRICHTUNG RECHTS
-                case 1:
-                    pathLength = (int)Random.Range(1, (width - currentPosX));
-                    Debug.Log("RECHTS um " + pathLength);
-
-                    pathEnd = currentPosX + pathLength;
-                    for (int indx = (currentPosX + 1); indx <= pathEnd; indx++)
-                    {
-                        tilesField[currentPosY, indx] = isCorrectTile;
-                        currentPosX = indx;
-                    }
-                    // naechste Pfadrichtung angeben
-                    pathDirection = 0;
-                    isRight = true;
-                    break;
-
-                // DEFAULT CASE
+                // PFADRICHTUNG LINKS ODER RECHTS
                 default:
-                    Debug.Log("neu wuerfeln!");
-                    currentPosY++;
-                    tilesField[currentPosY, currentPosX] = isCorrectTile;
-                    break;
-            } // ENDE SWITCH
+                    // PFADRICHTUNG LINKS
+                    if (pathDirection < 0)
+                    {
+                        pathLength = (int)Random.Range(1, (currentPosX + 1));
 
+                        pathEnd = currentPosX - pathLength;
+                        for (int indx = (currentPosX - 1); indx >= pathEnd; indx--)
+                        {
+                            tilesField[currentPosY, indx] = isCorrectTile;
+                            currentPosX = indx;
+                        }
+                        // naechste Pfadrichtung angeben
+                        isLeft = true;
+                    }
+                    // PFADRICHTUNG RECHTS
+                    else if (pathDirection > 0)
+                    {
+                        pathLength = (int)Random.Range(1, (width - currentPosX));
+
+                        pathEnd = currentPosX + pathLength;
+                        for (int indx = (currentPosX + 1); indx <= pathEnd; indx++)
+                        {
+                            tilesField[currentPosY, indx] = isCorrectTile;
+                            currentPosX = indx;
+                        }
+                        isRight = true;
+                    }
+                    // naechste Pfadrichtung ist vorwaerts
+                    pathDirection = 0;
+                    heightCounter = 2;
+                    break;
+            }
         } // ENDE WHILE
 
         placeTiles();
@@ -139,7 +144,7 @@ public class initPlayfield : MonoBehaviour
 
         if (tileType == isCorrectTile)
         {
-            tile.GetComponent<Renderer>().material.color = Color.green;
+            tile.GetComponent<Renderer>().material.color = Color.green;     //zu Testzwecken die richtigen Bodenplatten gruen faerben
         }
         else
         {
