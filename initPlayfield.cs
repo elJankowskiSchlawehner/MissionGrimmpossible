@@ -32,34 +32,19 @@ public class initPlayfield : MonoBehaviour
 
         tilesField[currentPosY, currentPosX] = isCorrectTile;   // Startwert in das Spielfeld eintragen
 
+        int pathDirection = 0;                          // speichert die moeglichen Richtungen des Pfades, initial = 0 (vorwaerts)
+        int pathLength;                                 // speichert die Laenge des Pfads in die gewuerfelte Richtung
+        int pathEnd;                                    // Abbruchbedingung for-Schleife
+
+        bool isRight = false;
+        bool isLeft = false;
+
+        int heightCounter = 2;
+
         // Schleife bricht ab, wenn in letzter Zeile des Arrays eine Bodenplatte gesetzt wurde
         while (currentPosY < (height - 1))
         {
             Debug.Log(currentPosX + ", " + currentPosY);
-            int pathDirection;                              // speichert die moeglichen Richtungen des Pfades
-            int pathLength;                                 // speichert die Laenge des Pfads in die gewuerfelte Richtung
-            int pathEnd;                                    // Abbruchbedingung for-Schleife
-
-            /* es werden die drei Moeglichkeiten abgedeckt (-1,0,1): links, vorwaerts, rechts
-               kann auch spaeter mit Chancen / Prozentwerten realisiert werden.
-               Achtungen Random.Range: obere Grenze ist exklusiv
-               Abfangen von Array out of Bounds
-             */
-            if (currentPosX == 0)                           // Position ganz links --> nur Richtungen Mitte oder Rechts erlaubt
-            {
-                Debug.Log("mr");
-                pathDirection = (int)Random.Range(0, 2);
-            }
-            else if (currentPosX == (width - 1))            // Position ganz rechts --> nur Richtungen Mitte oder Links erlaubt
-            {
-                Debug.Log("lm");
-                pathDirection = (int)Random.Range(-1, 1);
-            }
-            else                                            // alle Richtungen sind erlaubt
-            {
-                Debug.Log("lmr");
-                pathDirection = (int)Random.Range(-1, 2);
-            }
 
             switch (pathDirection)
             {
@@ -71,10 +56,12 @@ public class initPlayfield : MonoBehaviour
                     pathEnd = currentPosX - pathLength;
                     for (int indx = (currentPosX - 1); indx >= pathEnd; indx--)
                     {
-                        Debug.Log("Indx: " + indx + ", Bedingung: indx >= " + "currPosX(" + currentPosX + ") - pathLength(" + pathLength + ")");
                         tilesField[currentPosY, indx] = isCorrectTile;
                         currentPosX = indx;
                     }
+                    // naechste Pfadrichtung angeben
+                    pathDirection = 0;
+                    isLeft = true;
                     break;
 
                 // PFADRICHTUNG VORWAERTS
@@ -85,9 +72,22 @@ public class initPlayfield : MonoBehaviour
                     pathEnd = currentPosY + pathLength;
                     for (int indx = (currentPosY + 1); indx <= pathEnd; indx++)
                     {
-                        Debug.Log("Indx: " + indx + ", Bedingung: indx >= " + "currPosX(" + currentPosY + ") + pathLength(" + pathLength + ")");
                         tilesField[indx, currentPosX] = isCorrectTile;
                         currentPosY = indx;
+                    }
+
+                    // naechste Pfadrichtung waehlen
+                    if (currentPosX == 0)                           // Position ganz links --> naechste Wegrichtung ist rechts
+                    {
+                        pathDirection = 1;
+                    }
+                    else if (currentPosX == (width - 1))            // Position ganz rechts --> neachste Wegrichtung ist links
+                    {
+                        pathDirection = -1;
+                    }
+                    else                                            // ansonsten wuerfel aus, ob links oder rechts
+                    {
+                        pathDirection = (Random.Range(0f, 1f) < 0.5f) ? pathDirection = -1 : pathDirection = 1;
                     }
                     break;
 
@@ -99,10 +99,12 @@ public class initPlayfield : MonoBehaviour
                     pathEnd = currentPosX + pathLength;
                     for (int indx = (currentPosX + 1); indx <= pathEnd; indx++)
                     {
-                        Debug.Log("Indx: " + indx + ", Bedingung: indx >= " + "currPosX(" + currentPosX + ") + pathLength(" + pathLength + ")"); ;
                         tilesField[currentPosY, indx] = isCorrectTile;
                         currentPosX = indx;
                     }
+                    // naechste Pfadrichtung angeben
+                    pathDirection = 0;
+                    isRight = true;
                     break;
 
                 // DEFAULT CASE
@@ -112,6 +114,7 @@ public class initPlayfield : MonoBehaviour
                     tilesField[currentPosY, currentPosX] = isCorrectTile;
                     break;
             } // ENDE SWITCH
+
         } // ENDE WHILE
 
         placeTiles();
@@ -176,22 +179,6 @@ public class initPlayfield : MonoBehaviour
 
             startV.x = 0;
             startV.z += 3.5f;
-        }
-    }
-
-    /* 
-     * ##### debugField #####
-     * 
-     * zu Debug-Zwecken. Zeigt Koordinaten an
-     */
-    void debugField()
-    {
-        for (int i = 0; i < tilesField.GetLength(0); i++)
-        {
-            for (int j = 0; j < tilesField.GetLength(1); j++)
-            {
-                Debug.Log("[" + i + ", " + j + "]: " + tilesField[i, j]);
-            }
         }
     }
 }
