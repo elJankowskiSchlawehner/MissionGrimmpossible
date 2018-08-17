@@ -5,19 +5,32 @@ using UnityEngine;
 public class player : MonoBehaviour
 {
 
-    private initPlayfield board;
+    public float m_moveTime = 0.1f;           //Time it will take object to move, in seconds.
 
-    private float stepForward;
-    private float stepSide;
+    private initPlayfield _board;
+
+    private float _stepForward;
+    private float _stepSide;
+
+    private Rigidbody _rb;
+    private CapsuleCollider _cc;
+
+    private Vector3 _spawnPlayerV;
+
+    private float inverseMoveTime;          //Used to make movement more efficient.
 
     // Use this for initialization
     void Start()
     {
+        _board = GameObject.Find("boardGameManager").GetComponent<initPlayfield>();
+        _rb = GetComponent<Rigidbody>();
+        _cc = GetComponent<CapsuleCollider>();
 
-        board = GameObject.Find("boardGameManager").GetComponent<initPlayfield>();
+        _spawnPlayerV = transform.position;
+        _stepForward = _board.m_tileHeight;
+        _stepSide = _board.m_tileWidth;
 
-        stepForward = board.tileHeight;
-        stepSide = board.tileWidth;
+        inverseMoveTime = 1f / m_moveTime;
     }
 
     // Update is called once per frame
@@ -26,18 +39,27 @@ public class player : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W))
         {
-            transform.localPosition += new Vector3(0, 0, stepForward);
+            transform.localPosition += new Vector3(0, 0, _stepForward);
         }
 
         if (Input.GetKeyDown(KeyCode.A))
         {
-            transform.localPosition += new Vector3(-stepSide, 0, 0);
+            transform.localPosition += new Vector3(-1 *_stepSide, 0, 0);
         }
 
         if (Input.GetKeyDown(KeyCode.D))
         {
-            transform.localPosition += new Vector3(stepSide, 0, 0);
+            transform.localPosition += new Vector3(_stepSide, 0, 0);
         }
 
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "wrongTile")
+        {
+            Debug.Log("Gotcha!");
+            transform.position = _spawnPlayerV;
+        }
     }
 }
