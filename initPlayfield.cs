@@ -5,58 +5,58 @@ using UnityEngine;
 public class initPlayfield : MonoBehaviour
 {
     // Makros
-    private const bool isCorrectTile = true;
-    private const bool isWrongTile = false;
+    private const bool IS_CORRECT_TILE = true;
+    private const bool IS_WRONG_TILE = false;
 
     //Variablen
     //
-    public int height = 3;                                  // Hoehe des Spielfelds
-    public int width = 5;                                   // Breite des Spielfelds
-    private bool[,] tilesField;                             // [hoehe,breite], verwaltet den Bodenplattentyp und gibt Spielfeldgroesse an
+    public int m_height = 3;                                  // Hoehe des Spielfelds
+    public int m_width = 5;                                   // Breite des Spielfelds
+    private bool[,] _tilesField;                             // [hoehe,breite], verwaltet den Bodenplattentyp und gibt Spielfeldgroesse an
 
-    public GameObject tilePrefab;                           // prefab der Bodenplatten
-    public GameObject startPrefab;                          // prefab der Spawn-Position
-    public GameObject player;                               // Spieler prefab
+    public GameObject m_tilePrefab;                           // prefab der Bodenplatten
+    public GameObject m_startPrefab;                          // prefab der Spawn-Position
+    public GameObject m_player;                               // Spieler prefab
 
-    public float tileOffset = 0.0f;
+    public float m_tileOffset = 0.0f;
     [HideInInspector]
-    public float tileWidth, tileHeight;
+    public float m_tileWidth, m_tileHeight;
 
-    public Vector3 spawnerV = new Vector3(0, 0, 0);         // Startpunkt, ab dem die Tiles gesetzt werden
+    public Vector3 m_spawnerV = new Vector3(0, 0, 0);         // Startpunkt, ab dem alle Dinge gespawned werden
 
     // Use this for initialization
     void Start()
     {
-        if (width < 1)
+        if (m_width < 1)
         {
-            width = 1;
+            m_width = 1;
         }
-        if (height < 1)
+        if (m_height < 1)
         {
-            height = 1;
+            m_height = 1;
         }
 
-        tilesField = new bool[height, width];               // initialisiert das Spielfeld
+        _tilesField = new bool[m_height, m_width];               // initialisiert das Spielfeld
 
-        int currentPosX = (int)Random.Range(0, width);      // Startwert (X-Achse) wird gewuerfelt
-        int currentPosY = 0;                                // zaehlt die "Zeilen" des Arrays tilesField hoch, bei Start 0
+        int posX = (int)Random.Range(0, m_width);      // Startwert (X-Achse) wird gewuerfelt
+        int posY = 0;                                // zaehlt die "Zeilen" des Arrays tilesField hoch, bei Start 0
 
-        tilesField[currentPosY, currentPosX] = isCorrectTile;   // Startwert in das Spielfeld eintragen
+        _tilesField[posY, posX] = IS_CORRECT_TILE;   // Startwert in das Spielfeld eintragen
 
         int pathDirection = 0;                              // speichert die moeglichen Richtungen des Pfades, initial = 0 (vorwaerts)
         int pathLength;                                     // speichert die Laenge des Pfads in die gewuerfelte Richtung
         int pathEnd;                                        // Abbruchbedingung for-Schleife, ansonsten wird currentPosition in der Bedingung ueberschrieben
-        int maxForwardLength = (height / 3 + 1);            // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
+        int maxForwardLength = (m_height / 3 + 1);            // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
 
-        tileWidth = tilePrefab.transform.localScale.x + tileOffset;
-        tileHeight = tilePrefab.transform.localScale.z + tileOffset;
+        m_tileWidth = m_tilePrefab.transform.localScale.x + m_tileOffset;
+        m_tileHeight = m_tilePrefab.transform.localScale.z + m_tileOffset;
 
         bool isRight = false, isLeft = false;               // geben die Richtung des letzten Schritts an
 
         int heightCounter = 1;                              // verhindert einen aufeinanderfolgenden links-rechts-Schritt, = 1, da Startwert als ein Schritt gilt, ansonsten = 2
 
         // Schleife bricht ab, wenn in letzter Zeile des Arrays eine Bodenplatte gesetzt wurde
-        while (currentPosY < (height - 1))
+        while (posY < (m_height - 1))
         {
             // welche Richtung wurde gewaehlt, Startwert ist immer vorwaerts
             switch (pathDirection)
@@ -66,17 +66,17 @@ public class initPlayfield : MonoBehaviour
                     pathLength = (int)Random.Range(1, maxForwardLength);
                     heightCounter -= pathLength;            // Hoehenunterschied durch Schritt berechnen
 
-                    pathEnd = currentPosY + pathLength;
-                    for (int indx = (currentPosY + 1); indx <= pathEnd && currentPosY < (height - 1); indx++)
+                    pathEnd = posY + pathLength;
+                    for (int indx = (posY + 1); indx <= pathEnd && posY < (m_height - 1); indx++)
                     {
-                        tilesField[indx, currentPosX] = isCorrectTile;
-                        currentPosY = indx;
+                        _tilesField[indx, posX] = IS_CORRECT_TILE;
+                        posY = indx;
                     }
 
                     // naechste Pfadrichtung waehlen
                     //
                     // Fall abdecken, falls Breite doch mal 1 entsprechen sollte
-                    if (width == 1)
+                    if (m_width == 1)
                     {
                         pathDirection = 0;
                         break;
@@ -85,11 +85,11 @@ public class initPlayfield : MonoBehaviour
                     // Normalfaelle - Hoehenunterschied von 
                     if (heightCounter <= 0)
                     {
-                        if (currentPosX == 0)               // Position ganz links --> naechste Wegrichtung ist rechts
+                        if (posX == 0)               // Position ganz links --> naechste Wegrichtung ist rechts
                         {
                             pathDirection = 1;
                         }
-                        else if (currentPosX == (width - 1))    // Position ganz rechts --> neachste Wegrichtung ist links
+                        else if (posX == (m_width - 1))    // Position ganz rechts --> neachste Wegrichtung ist links
                         {
                             pathDirection = -1;
                         }
@@ -102,11 +102,11 @@ public class initPlayfield : MonoBehaviour
                     }
                     else
                     {
-                        if (isLeft && currentPosX != 0)
+                        if (isLeft && posX != 0)
                         {
                             pathDirection = Random.Range(-1, 1);
                         }
-                        else if (heightCounter > 0 && isRight && currentPosX != (width - 1))
+                        else if (heightCounter > 0 && isRight && posX != (m_width - 1))
                         {
                             pathDirection = Random.Range(0, 2);
                         }
@@ -119,13 +119,13 @@ public class initPlayfield : MonoBehaviour
                     // PFADRICHTUNG LINKS
                     if (pathDirection < 0)
                     {
-                        pathLength = (int)Random.Range(1, (currentPosX + 1));
+                        pathLength = (int)Random.Range(1, (posX + 1));
 
-                        pathEnd = currentPosX - pathLength;
-                        for (int indx = (currentPosX - 1); indx >= pathEnd; indx--)
+                        pathEnd = posX - pathLength;
+                        for (int indx = (posX - 1); indx >= pathEnd; indx--)
                         {
-                            tilesField[currentPosY, indx] = isCorrectTile;
-                            currentPosX = indx;
+                            _tilesField[posY, indx] = IS_CORRECT_TILE;
+                            posX = indx;
                         }
                         // naechste Pfadrichtung angeben
                         isLeft = true;
@@ -133,13 +133,13 @@ public class initPlayfield : MonoBehaviour
                     // PFADRICHTUNG RECHTS
                     else if (pathDirection > 0)
                     {
-                        pathLength = (int)Random.Range(1, (width - currentPosX));
+                        pathLength = (int)Random.Range(1, (m_width - posX));
 
-                        pathEnd = currentPosX + pathLength;
-                        for (int indx = (currentPosX + 1); indx <= pathEnd; indx++)
+                        pathEnd = posX + pathLength;
+                        for (int indx = (posX + 1); indx <= pathEnd; indx++)
                         {
-                            tilesField[currentPosY, indx] = isCorrectTile;
-                            currentPosX = indx;
+                            _tilesField[posY, indx] = IS_CORRECT_TILE;
+                            posX = indx;
                         }
                         isRight = true;
                     }
@@ -160,25 +160,35 @@ public class initPlayfield : MonoBehaviour
     }
 
     /* 
-     * ##### placeTile #####
+     * ##### createTile #####
      * 
      * Erzeugt eine Bodenplatte und liefert diese zurueck.
      * Je nach Parameter wird eine andere Bodenplatte mit anderen
      * Komponenten erzeugt
      */
-    GameObject placeTile(bool tileType, Vector3 position)
+    GameObject createTile(bool tileType, Vector3 position)
     {
-        GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity);
+        GameObject tile = Instantiate(m_tilePrefab, position, Quaternion.identity);
 
-        if (tileType == isCorrectTile)
+        if (tileType == IS_CORRECT_TILE)
         {
-            tile.GetComponent<Renderer>().material.color = Color.green;     //zu Testzwecken die richtigen Bodenplatten gruen faerben
+            tile.name = "correctTile";
+            //tile.GetComponent<Renderer>().material.color = Color.green;     //zu Testzwecken die richtigen Bodenplatten gruen faerben
         }
         else
         {
-
+            // Tile bearbeiten und ein Kind-Element erstellen
+            tile.name = "wrongTile";
+            GameObject wrongTile = new GameObject("triggerElem");
+            wrongTile.transform.parent = tile.transform;
+            wrongTile.transform.localPosition = Vector3.zero;
+            wrongTile.tag = "wrongTile";
+            
+            // den Collider zur Erkennung des Spielers erstellen
+            BoxCollider bc = wrongTile.AddComponent<BoxCollider>();
+            bc.isTrigger = true;
+            bc.size = new Vector3(0.5f, 0.5f, 0.5f);
         }
-
         return tile;
     }
 
@@ -190,45 +200,45 @@ public class initPlayfield : MonoBehaviour
      */
     void createBoard()
     {
-        Vector3 tileSpawnV = spawnerV;
-        Vector3 playerSpawnV = spawnerV;
+        Vector3 tileSpawnV = m_spawnerV;
+        Vector3 playerSpawnV = m_spawnerV;
 
         //platziere die Startplatten - andere Moeglichkeit mittels einer grossen ganzen Flaeche???
-        for (int i = 1; i <= tilesField.GetLength(1); i++)
+        for (int i = 1; i <= _tilesField.GetLength(1); i++)
         {
-            Instantiate(startPrefab, tileSpawnV, Quaternion.identity);
-            tileSpawnV.x += tileWidth;
+            Instantiate(m_startPrefab, tileSpawnV, Quaternion.identity);
+            tileSpawnV.x += m_tileWidth;
         }
-        tileSpawnV.x = spawnerV.x;
-        tileSpawnV.z += tileHeight;
+        tileSpawnV.x = m_spawnerV.x;
+        tileSpawnV.z += m_tileHeight;
 
         // Spielerfigur setzen
-        playerSpawnV.x = (width / 2) * tileWidth;
-        Instantiate(player, new Vector3(playerSpawnV.x, playerSpawnV.y + 10, playerSpawnV.z), Quaternion.identity);
+        playerSpawnV.x = (m_width / 2) * m_tileWidth;
+        Instantiate(m_player, new Vector3(playerSpawnV.x, playerSpawnV.y + 10, playerSpawnV.z), Quaternion.identity);
 
 
 
         // platziere die restlichen Bodenplatten
-        for (int i = 0; i < tilesField.GetLength(0); i++)
+        for (int i = 0; i < _tilesField.GetLength(0); i++)
         {
-            for (int j = 0; j < tilesField.GetLength(1); j++)
+            for (int j = 0; j < _tilesField.GetLength(1); j++)
             {
                 // korrekte Bodenplatte legen bei Übereinstimmung
-                if (tilesField[i, j] == isCorrectTile)
+                if (_tilesField[i, j] == IS_CORRECT_TILE)
                 {
-                    placeTile(isCorrectTile, tileSpawnV);
+                    createTile(IS_CORRECT_TILE, tileSpawnV);
                 }
                 // falsche Bodenplatte legen
                 else
                 {
-                    placeTile(isWrongTile, tileSpawnV);
+                    createTile(IS_WRONG_TILE, tileSpawnV);
                 }
 
-                tileSpawnV.x += tileWidth;
+                tileSpawnV.x += m_tileWidth;
             }
 
-            tileSpawnV.x = spawnerV.x;
-            tileSpawnV.z += tileHeight;
+            tileSpawnV.x = m_spawnerV.x;
+            tileSpawnV.z += m_tileHeight;
         }
     }
 }
