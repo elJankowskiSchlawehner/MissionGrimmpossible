@@ -6,15 +6,15 @@ public class DecayScript : MonoBehaviour
 {
     private Transform _board;
 
-    public float m_tickRate = 0.3f;     // Tick-Rate
-    public float m_decayAt = 2.0f;      // Ab wann soll das Objekt verschwinden?
+    public float TickRate = 0.3f;       // Tick-Rate
+    public float DecayTimer = 2.0f;     // Ab wann soll das Objekt verschwinden?
     private float _decayTime;           // die "Schrumpfzeit", abhaengig von der Groesse des Objekts 
-    private bool b_isGrounded = false;  // noetig zur Ueberpruefung in Update
+    private bool _isGrounded = false;   // noetig zur Ueberpruefung in Update
 
     // Use this for initialization
     void Start()
     {
-        _decayTime = m_tickRate * transform.localScale.x;
+        _decayTime = TickRate * transform.localScale.x;
         _board = GameObject.Find("boardGameManager").transform;
     }
 
@@ -23,13 +23,13 @@ public class DecayScript : MonoBehaviour
     {
         if (IsGrounded() || transform.position.y < _board.position.y - 10f)
         {
-            b_isGrounded = true;
+            _isGrounded = true;
         }
-        if (b_isGrounded)
+        if (_isGrounded)
         {
-            m_decayAt -= Time.deltaTime;
+            DecayTimer -= Time.deltaTime;
         }
-        if (m_decayAt <= 0f)
+        if (DecayTimer <= 0f)
         {
             if (transform.GetComponent<Rigidbody>() != null)
             {

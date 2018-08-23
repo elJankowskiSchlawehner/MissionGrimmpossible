@@ -7,20 +7,20 @@ public class Player : MonoBehaviour
     private InitPlayfield _board;
 
     [HideInInspector]
-    public Vector3 m_resetPointV;
+    public Vector3 ResetPoint_V;
 
     private float _stepForward;
     private float _stepSide;
-    public float m_speed = 0.5f;
+    public float Speed = 0.5f;
     private float _currentLerpTime = 0f;
-    private Vector3 _startPos;
-    private Vector3 _endPos;
+    private Vector3 _startPos_V;
+    private Vector3 _endPos_V;
 
     private Rigidbody _rb;
     private CapsuleCollider _cc;
 
-    private bool isStanding = false;
-    private bool keyHit = false;
+    private bool _isStanding = false;
+    private bool _keyHit = false;
 
     // Use this for initialization
     void Start()
@@ -30,9 +30,9 @@ public class Player : MonoBehaviour
         _cc = GetComponent<CapsuleCollider>();
 
         //m_resetPointV wird in initPlayfield initialisiert
-        _stepForward = _board.m_tileHeight;
-        _stepSide = _board.m_tileWidth;
-        _startPos = m_resetPointV;
+        _stepForward = _board.TileHeight;
+        _stepSide = _board.TileWidth;
+        _startPos_V = ResetPoint_V;
     }
 
     // Update is called once per frame
@@ -40,29 +40,29 @@ public class Player : MonoBehaviour
     {
         if (_rb.velocity.y == 0 || _rb.velocity.x == 0)
         {
-            isStanding = true;
+            _isStanding = true;
         }
 
-        if (isStanding)
+        if (_isStanding)
         {
             if (Input.GetKeyDown(KeyCode.W))
             {
-                keyHit = true;
-                _endPos = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z + _stepForward);
+                _keyHit = true;
+                _endPos_V = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z + _stepForward);
                 transform.localPosition += new Vector3(0, 0, _stepForward);
             }
 
             if (Input.GetKeyDown(KeyCode.A))
             {
-                keyHit = true;
-                _endPos = new Vector3(transform.localPosition.x - _stepSide, transform.localPosition.y, transform.localPosition.z);
+                _keyHit = true;
+                _endPos_V = new Vector3(transform.localPosition.x - _stepSide, transform.localPosition.y, transform.localPosition.z);
                 transform.localPosition += new Vector3(-1 * _stepSide, 0, 0);
             }
 
             if (Input.GetKeyDown(KeyCode.D))
             {
-                keyHit = true;
-                _endPos = new Vector3(transform.localPosition.x + _stepSide, transform.localPosition.y, transform.localPosition.z);
+                _keyHit = true;
+                _endPos_V = new Vector3(transform.localPosition.x + _stepSide, transform.localPosition.y, transform.localPosition.z);
                 transform.localPosition += new Vector3(_stepSide, 0, 0);
             }
 
@@ -91,7 +91,7 @@ public class Player : MonoBehaviour
     {
         if (other.tag == "wrongTile")
         {
-            transform.position = m_resetPointV;
+            transform.position = ResetPoint_V;
         }
     }
 }

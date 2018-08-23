@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class Glass : MonoBehaviour {
 
-    public GameObject[] m_glassPrefabs;
+    public GameObject[] GlassPrefabs;
 
     private GameObject _player;
 
@@ -23,7 +23,7 @@ public class Glass : MonoBehaviour {
         {
             // Glass instanzieren
             Debug.Log("das Spiel beginnt ...");
-            GameObject glassBroken = Instantiate(m_glassPrefabs[Random.Range(0, m_glassPrefabs.Length)], gameObject.transform.position, gameObject.transform.rotation);
+            GameObject glassBroken = Instantiate(GlassPrefabs[Random.Range(0, GlassPrefabs.Length)], gameObject.transform.position, gameObject.transform.rotation);
             glassBroken.name = "glassBroken";
 
             Rigidbody[] pieces = glassBroken.GetComponentsInChildren<Rigidbody>();
