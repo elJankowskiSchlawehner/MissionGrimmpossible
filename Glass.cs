@@ -13,16 +13,14 @@ public class Glass : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         _player = GameObject.Find("player");
-        Debug.Log("zum Spielen: Space druecken!");
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        // Spielstart bei Space???
+        // Spielstart bei Space
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // Glass instanzieren
-            Debug.Log("das Spiel beginnt ...");
             GameObject glassBroken = Instantiate(GlassPrefabs[Random.Range(0, GlassPrefabs.Length)], gameObject.transform.position, gameObject.transform.rotation);
             glassBroken.name = "glassBroken";
 
@@ -38,13 +36,12 @@ public class Glass : MonoBehaviour {
             Destroy(glassBroken);
 
             // Spielereinstellungen vornehmen
+            _player.GetComponent<Player>().CanMove = true;
             _player.GetComponent<Rigidbody>().isKinematic = false;
             _player.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ
                                                             | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
-
             // zerstoere das urspruengliche Glass
             Destroy(gameObject);
-            
         }
     }
 }

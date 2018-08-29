@@ -35,19 +35,23 @@ public class DecayScript : MonoBehaviour
             {
                 //transform.GetComponent<Rigidbody>().isKinematic = true;
             }
-            transform.localScale = new Vector3(transform.localScale.x - (_decayTime * Time.deltaTime),
+            transform.localScale = new Vector3 (
+                                                transform.localScale.x - (_decayTime * Time.deltaTime),
                                                 transform.localScale.y - (_decayTime * Time.deltaTime),
-                                                transform.localScale.z - (_decayTime * Time.deltaTime));
+                                                transform.localScale.z - (_decayTime * Time.deltaTime)
+                                                );
         }
 
         if (transform.localScale.x <= 0)
         {
             Destroy(gameObject);
         }
-
     }
 
-
+    /* 
+     * ##### IsGrounded #####
+     * liefert einen bool-Wert zurueck, je nachdem, ob der Raycast auf ein Objekt traf oder nicht
+     */
     private bool IsGrounded()
     {
         return Physics.Raycast(transform.position, Vector3.down, 2f);

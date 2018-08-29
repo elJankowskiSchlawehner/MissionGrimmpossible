@@ -1,10 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    private InitPlayfield _board;
+    private Transform _boardManager;
+    private PlayfieldInitialiser _boardInfo;
+    private PlayfieldObserver _boardObserver;
 
     [HideInInspector]
     public Vector3 ResetPoint_V;
@@ -16,54 +19,50 @@ public class Player : MonoBehaviour
     private Vector3 _startPos_V;
     private Vector3 _endPos_V;
 
-    private Rigidbody _rb;
-    private CapsuleCollider _cc;
-
-    private bool _isStanding = false;
-    private bool _keyHit = false;
+    [HideInInspector]
+    public bool CanMove = false;
+    private float _resetTimer = 0f;
 
     // Use this for initialization
     void Start()
     {
-        _board = GameObject.Find("boardGameManager").GetComponent<InitPlayfield>();
-        _rb = GetComponent<Rigidbody>();
-        _cc = GetComponent<CapsuleCollider>();
+        Debug.Log("zum Spielen: Space druecken!");
+        Debug.Log("R gedrueckt halten: Zuruecksetzen");
+
+        _boardManager = GameObject.Find("boardGameManager").transform;
+        _boardInfo = _boardManager.GetComponent<PlayfieldInitialiser>();
+        _boardObserver = _boardManager.GetComponent<PlayfieldObserver>();
 
         //m_resetPointV wird in initPlayfield initialisiert
-        _stepForward = _board.TileHeight;
-        _stepSide = _board.TileWidth;
+        _stepForward = _boardInfo.TileHeight;
+        _stepSide = _boardInfo.TileWidth;
         _startPos_V = ResetPoint_V;
+
+        CanMove = false;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_rb.velocity.y == 0 || _rb.velocity.x == 0)
-        {
-            _isStanding = true;
-        }
-
-        if (_isStanding)
+        if (CanMove)
         {
             if (Input.GetKeyDown(KeyCode.W))
             {
-                _keyHit = true;
-                _endPos_V = new Vector3(transform.localPosition.x, transform.localPosition.y, transform.localPosition.z + _stepForward);
-                transform.localPosition += new Vector3(0, 0, _stepForward);
+                _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
+                transform.position += new Vector3(0, 0, _stepForward);
+                _boardObserver.CheckWin();
             }
 
-            if (Input.GetKeyDown(KeyCode.A))
+            if (Input.GetKeyDown(KeyCode.A) && transform.position.x > _boardInfo.transform.position.x)
             {
-                _keyHit = true;
-                _endPos_V = new Vector3(transform.localPosition.x - _stepSide, transform.localPosition.y, transform.localPosition.z);
-                transform.localPosition += new Vector3(-1 * _stepSide, 0, 0);
+                _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
+                transform.position += new Vector3(-1 * _stepSide, 0, 0);
             }
 
-            if (Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
             {
-                _keyHit = true;
-                _endPos_V = new Vector3(transform.localPosition.x + _stepSide, transform.localPosition.y, transform.localPosition.z);
-                transform.localPosition += new Vector3(_stepSide, 0, 0);
+                _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
+                transform.position += new Vector3(_stepSide, 0, 0);
             }
 
             /*if (keyHit)
@@ -85,13 +84,47 @@ public class Player : MonoBehaviour
                 }
             }*/
         }
+
+        if (Input.GetKey(KeyCode.R))
+        {
+            if (_resetTimer >= 1.0f)
+            {
+                _boardObserver.RestartGame();
+            }
+            _resetTimer += Time.deltaTime;
+        }
+        else
+        {
+            _resetTimer = 0f;
+        }
     }
 
-    private void OnTriggerStay(Collider other)
+    private void OnTriggerEnter(Collider tileCollider)
     {
-        if (other.tag == "wrongTile")
+        _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
+
+        if (tileCollider.tag == "wrongTile")
         {
-            transform.position = ResetPoint_V;
+            CanMove = false;
+            //transform.position = ResetPoint_V;
+            StartCoroutine(_boardObserver.ResetTiles());
         }
+        else if (tileCollider.tag == "correctTile")
+        {
+
+        }
+    }
+
+    // TO DO
+    // benutzt in PlayfieldObserver
+    public void isDead()
+    {
+        GetComponent<MeshRenderer>().enabled = false;
+    }
+
+    public void isAlive()
+    {
+        GetComponent<MeshRenderer>().enabled = true;
+        transform.position = ResetPoint_V;
     }
 }
