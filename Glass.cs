@@ -2,48 +2,46 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class glass : MonoBehaviour {
+// steuert Spielstart
 
-    //private Rigidbody[] rbChildren;
-    private List<Rigidbody> rbChildren;
-    private float spawnY;
+public class Glass : MonoBehaviour {
 
-    public float decayTime = 50.0f;
+    public GameObject[] GlassPrefabs;
+
+    private GameObject _player;
 
 	// Use this for initialization
 	void Start () {
-        rbChildren = new List<Rigidbody>(transform.GetComponentsInChildren<Rigidbody>());
-        spawnY = GameObject.Find("boardGameManager").transform.position.y;
-
-        foreach (Rigidbody rb in rbChildren)
-        {
-            rb.AddExplosionForce(50.0f, transform.position, 5.0f, -5.0f);
-        }
+        _player = GameObject.Find("player");
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        for (int i = 0; i < rbChildren.Count; i++) 
+        // Spielstart bei Space
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (rbChildren[i].velocity.magnitude == 0 || rbChildren[i].transform.position.y < spawnY)
-            {
-                rbChildren[i].isKinematic = true;
-                rbChildren[i].transform.localScale = new Vector3    (rbChildren[i].transform.localScale.x - (decayTime * Time.deltaTime),
-                                                                    rbChildren[i].transform.localScale.y - (decayTime * Time.deltaTime),
-                                                                    rbChildren[i].transform.localScale.z - (decayTime * Time.deltaTime));
-            }
+            // Glass instanzieren
+            GameObject glassBroken = Instantiate(GlassPrefabs[Random.Range(0, GlassPrefabs.Length)], gameObject.transform.position, gameObject.transform.rotation);
+            glassBroken.name = "glassBroken";
 
-            if (rbChildren[i].transform.localScale.x <= 0)
-            {
-                Destroy(rbChildren[i]);
-                rbChildren.RemoveAt(i);
-            }
-        }
+            Rigidbody[] pieces = glassBroken.GetComponentsInChildren<Rigidbody>();
 
-        if (transform.childCount == 0)
-        {
+            foreach (Rigidbody rb in pieces)
+            {
+                rb.gameObject.AddComponent<DecayScript>();
+                rb.AddExplosionForce(50.0f, transform.position, 5.0f, -5.0f);
+                Physics.IgnoreCollision(_player.gameObject.GetComponent<Collider>(), rb.gameObject.GetComponent<Collider>());
+            }
+            glassBroken.transform.DetachChildren();
+            Destroy(glassBroken);
+
+            // Spielereinstellungen vornehmen
+            _player.GetComponent<Player>().CanMove = true;
+            _player.GetComponent<Rigidbody>().isKinematic = false;
+            _player.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ
+                                                            | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+            // zerstoere das urspruengliche Glass
             Destroy(gameObject);
-            Debug.Log("Glass vollstaendig zerstoert");
         }
     }
 }
