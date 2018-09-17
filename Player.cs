@@ -46,20 +46,33 @@ public class Player : MonoBehaviour
     {
         if (CanMove)
         {
-            if (Input.GetKeyDown(KeyCode.W))
+            _boardObserver.GameStarted = true;
+            if (Input.GetKeyDown(KeyCode.W) | Input.GetKeyDown(KeyCode.UpArrow))
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
                 transform.position += new Vector3(0, 0, _stepForward);
                 _boardObserver.CheckWin();
             }
 
-            if (Input.GetKeyDown(KeyCode.A) && transform.position.x > _boardInfo.transform.position.x)
+            if ((Input.GetKeyDown(KeyCode.A)) && transform.position.x > _boardInfo.transform.position.x)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
                 transform.position += new Vector3(-1 * _stepSide, 0, 0);
             }
 
-            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
+            if ((Input.GetKeyDown(KeyCode.LeftArrow)) && transform.position.x > _boardInfo.transform.position.x)
+            {
+                _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
+                transform.position += new Vector3(-1 * _stepSide, 0, 0);
+            }
+
+            if ((Input.GetKeyDown(KeyCode.D)) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
+            {
+                _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
+                transform.position += new Vector3(_stepSide, 0, 0);
+            }
+
+            if ((Input.GetKeyDown(KeyCode.RightArrow)) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
                 transform.position += new Vector3(_stepSide, 0, 0);
@@ -101,13 +114,13 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider tileCollider)
     {
-        _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
+        Vector3 currentTilePos = _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
 
         if (tileCollider.tag == "wrongTile")
         {
             CanMove = false;
-            //transform.position = ResetPoint_V;
-            StartCoroutine(_boardObserver.ResetTiles());
+            // Falle Routine auch ausfuehren
+            StartCoroutine(_boardObserver.ResetPlayer(currentTilePos));
         }
         else if (tileCollider.tag == "correctTile")
         {
