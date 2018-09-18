@@ -23,11 +23,14 @@ public class Player : MonoBehaviour
     public bool CanMove = false;
     private float _resetTimer = 0f;
 
+    GameObject[] pauseScreen;
+
     // Use this for initialization
     void Start()
     {
         Debug.Log("zum Spielen: Space druecken!");
         Debug.Log("R gedrueckt halten: Zuruecksetzen");
+        Debug.Log("P drücken um zu pausieren");
 
         _boardManager = GameObject.Find("boardGameManager").transform;
         _boardInfo = _boardManager.GetComponent<PlayfieldInitialiser>();
@@ -37,6 +40,10 @@ public class Player : MonoBehaviour
         _stepForward = _boardInfo.TileHeight;
         _stepSide = _boardInfo.TileWidth;
         _startPos_V = ResetPoint_V;
+
+        //Pause-Screen wird geladen und versteckt
+        pauseScreen = GameObject.FindGameObjectsWithTag("ShowPauseScreen");
+        hidePauseScreen();
 
         CanMove = false;
     }
@@ -50,34 +57,35 @@ public class Player : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.W) | Input.GetKeyDown(KeyCode.UpArrow))
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
-                transform.position += new Vector3(0, 0, _stepForward)*Speed;
+                transform.position += new Vector3(0, 0, _stepForward);
                 _boardObserver.CheckWin();
             }
 
             if ((Input.GetKeyDown(KeyCode.A)) && transform.position.x > _boardInfo.transform.position.x)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(-1 * _stepSide, 0, 0) * Speed;
+                transform.position += new Vector3(-1 * _stepSide, 0, 0);
             }
 
             if ((Input.GetKeyDown(KeyCode.LeftArrow)) && transform.position.x > _boardInfo.transform.position.x)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(-1 * _stepSide, 0, 0) * Speed;
+                transform.position += new Vector3(-1 * _stepSide, 0, 0);
             }
 
             if ((Input.GetKeyDown(KeyCode.D)) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(_stepSide, 0, 0) * Speed;
+                transform.position += new Vector3(_stepSide, 0, 0);
             }
 
             if ((Input.GetKeyDown(KeyCode.RightArrow)) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(_stepSide, 0, 0) * Speed;
+                transform.position += new Vector3(_stepSide, 0, 0);
             }
 
+            //Game restarten
             if (Input.GetKey(KeyCode.R))
             {
                 if (_resetTimer >= 1.0f)
@@ -90,17 +98,8 @@ public class Player : MonoBehaviour
             {
                 _resetTimer = 0f;
             }
-
-            if (Input.GetKey(KeyCode.LeftShift))
-            {
-                if (Time.timeScale == 1)
-                    Time.timeScale = 0;
-                else
-                    Time.timeScale = 1;
-            }
-
         }
-
+        pauseGame();
 
     }
 
@@ -133,4 +132,44 @@ public class Player : MonoBehaviour
         GetComponent<MeshRenderer>().enabled = true;
         transform.position = ResetPoint_V;
     }
+
+
+    //Game pausieren
+    public void pauseGame() {
+        if (Input.GetKey(KeyCode.P))
+        {
+            if (Time.timeScale == 1)
+            {
+                Time.timeScale = 0;
+                CanMove = false;
+                showPauseScreen();
+            }
+            else
+            {
+                Time.timeScale = 1;
+                CanMove = true;
+                hidePauseScreen();
+            }
+        }
+    }
+        
+
+    //Pause-Screen anzeigen
+    public void showPauseScreen()
+    {
+        foreach (GameObject p in pauseScreen)
+        {
+            p.SetActive(true);
+        }
+    }
+
+    //Pause-Screen verbergen
+    public void hidePauseScreen()
+    {
+        foreach (GameObject p in pauseScreen)
+        {
+            p.SetActive(false);
+        }
+    }
+
 }
