@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
 
     private float _stepForward;
     private float _stepSide;
-    public float Speed = 0.5f;
+    public float Speed = 5.0f;
     private float _currentLerpTime = 0f;
     private Vector3 _startPos_V;
     private Vector3 _endPos_V;
@@ -50,52 +50,35 @@ public class Player : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.W) | Input.GetKeyDown(KeyCode.UpArrow))
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
-                transform.position += new Vector3(0, 0, _stepForward);
+                transform.position += new Vector3(0, 0, _stepForward)*Speed;
                 _boardObserver.CheckWin();
             }
 
             if ((Input.GetKeyDown(KeyCode.A)) && transform.position.x > _boardInfo.transform.position.x)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(-1 * _stepSide, 0, 0);
+                transform.position += new Vector3(-1 * _stepSide, 0, 0) * Speed;
             }
 
             if ((Input.GetKeyDown(KeyCode.LeftArrow)) && transform.position.x > _boardInfo.transform.position.x)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(-1 * _stepSide, 0, 0);
+                transform.position += new Vector3(-1 * _stepSide, 0, 0) * Speed;
             }
 
             if ((Input.GetKeyDown(KeyCode.D)) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(_stepSide, 0, 0);
+                transform.position += new Vector3(_stepSide, 0, 0) * Speed;
             }
 
             if ((Input.GetKeyDown(KeyCode.RightArrow)) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(_stepSide, 0, 0);
+                transform.position += new Vector3(_stepSide, 0, 0) * Speed;
             }
 
-            /*if (keyHit)
-            {
-                isStanding = false;
-                _currentLerpTime += Time.deltaTime;
-                if (_currentLerpTime >= m_speed)
-                {
-                    _currentLerpTime = m_speed;
-                }
 
-                float Perc = _currentLerpTime / m_speed;
-                transform.localPosition = Vector3.Lerp(_startPos, _endPos, Perc);
-                if (_currentLerpTime >= m_speed)
-                {
-                    keyHit = false;
-                    _currentLerpTime = 0f;
-                    isStanding = true;
-                }
-            }*/
         }
 
         if (Input.GetKey(KeyCode.R))
