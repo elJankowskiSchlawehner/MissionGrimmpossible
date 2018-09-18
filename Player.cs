@@ -78,22 +78,32 @@ public class Player : MonoBehaviour
                 transform.position += new Vector3(_stepSide, 0, 0) * Speed;
             }
 
-
-        }
-
-        if (Input.GetKey(KeyCode.R))
-        {
-            if (_resetTimer >= 1.0f)
+            if (Input.GetKey(KeyCode.R))
             {
-                _boardObserver.RestartGame();
+                if (_resetTimer >= 1.0f)
+                {
+                    _boardObserver.RestartGame();
+                }
+                _resetTimer += Time.deltaTime;
             }
-            _resetTimer += Time.deltaTime;
+            else
+            {
+                _resetTimer = 0f;
+            }
+
+            if (Input.GetKey(KeyCode.LeftShift))
+            {
+                if (Time.timeScale == 1)
+                    Time.timeScale = 0;
+                else
+                    Time.timeScale = 1;
+            }
+
         }
-        else
-        {
-            _resetTimer = 0f;
-        }
+
+
     }
+
 
     private void OnTriggerEnter(Collider tileCollider)
     {
