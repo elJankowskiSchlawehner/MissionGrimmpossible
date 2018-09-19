@@ -12,7 +12,7 @@ public class Glass : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        _player = GameObject.Find("player");
+        _player = GameObject.Find("Player");
 	}
 	
 	// Update is called once per frame

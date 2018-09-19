@@ -46,6 +46,7 @@ public class Player : MonoBehaviour
     {
         if (CanMove)
         {
+            _boardObserver.GameStarted = true;
             if (Input.GetKeyDown(KeyCode.W))
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);

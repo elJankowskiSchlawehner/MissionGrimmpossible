@@ -272,7 +272,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         GameObject player = Instantiate(Player, playerSpawnV, Quaternion.identity);
 
         // Spielfigur - Einstellungen vornehmen
-        player.name = "player";
+        player.name = "Player";
         plaver_V.y += player.transform.localScale.y;
         player.GetComponent<Player>().ResetPoint_V = plaver_V;
         player.GetComponent<Rigidbody>().isKinematic = true;
@@ -292,16 +292,19 @@ public class PlayfieldInitialiser : MonoBehaviour
      */
     private void CreateSpawn_Tiles()
     {
-        Vector3 position_V = SPAWNER_V;
-        position_V.z -= TileHeight;
+        Vector3 position_V = new Vector3 (SPAWNER_V.x, SPAWNER_V.y, SPAWNER_V.z - TileHeight);
         //platziere die Startplatten - andere Moeglichkeit mittels einer grossen ganzen Flaeche???
-        for (int i = 0; i < WidthPlayfield; i++)
+        for (int j = 0; j < 5; j++)
         {
-            CreateTile(SpawnTexture, position_V);
-            position_V.x += TileWidth;
+            for (int i = 0; i < WidthPlayfield; i++)
+            {
+                CreateTile(SpawnTexture, position_V);
+                position_V.x += TileWidth;
+            }
+            position_V.x = SPAWNER_V.x;
+            position_V.z -= TileHeight;
         }
-        position_V.x = SPAWNER_V.x;
-        //spawn_V.z -= TileHeight;
+
     }
 
     /* 

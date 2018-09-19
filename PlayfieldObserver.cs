@@ -15,43 +15,50 @@ public class PlayfieldObserver : MonoBehaviour {
 
     private int _activeCoroutines = 0;                                 // zaehlt alle aktiven Routinen in movingSmooth, wichtig fuer ResetPlayer
 
-    public float GameTimer = 60.0f;
-    public Text timerText;
+    public float GameTimer = (int) 30.0f;
+    private Text _timerText;
+    private Color _textColor;
 
     private float _heightDifference = 0.3f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
     private float _tileSpeed = 0.5f;                               // die Zeit, die die Bewegung der Bodenplatten benoetigt
 
     public bool GameStarted = false;
+    private bool _gameFinished = false;
 
 	// Use this for initialization
 	void Start () {
         TrapsPrefab_Tiles = gameObject.GetComponent<PlayfieldInitialiser>().TrapsPrefab_Tiles;
         TrapsPrefab_Misc = gameObject.GetComponent<PlayfieldInitialiser>().TrapsPrefab_Misc;
-        _player = GameObject.Find("player").GetComponent<Player>();
+        _player = GameObject.Find("Player").GetComponent<Player>();
         _boardInfo = gameObject.GetComponent<PlayfieldInitialiser>();
 
-        timerText = GameObject.Find("Timer").GetComponent<Text>();
-        timerText.text = GameTimer.ToString("N2");
+        GameTimer -= 0.01f;
+        _timerText = GameObject.Find("Timer").GetComponent<Text>();
+        _timerText.text = ShowRemainingTime();
+        _textColor = _timerText.color;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (_player.CanMove)
+        if (GameStarted && !_gameFinished)
         {
-            GameStarted = true;
-        }
-
-        if (GameStarted)
-        {
+            GameTimer -= Time.deltaTime;
             if (GameTimer <= 0f)
             {
+                _player.CanMove = false;
+                GameTimer = 0f;
+                _timerText.color = Color.red;
                 RestartGame();
             }
 
-            timerText.text = (Mathf.Round(GameTimer * 100f) / 100f).ToString();
-            GameTimer -= Time.deltaTime;
+            if (GameTimer <= 10.0f && GameTimer > 0)
+            {
+                _timerText.color = Color.Lerp(_textColor, Color.red, Mathf.PingPong(Time.time, 1));
+            }
+
+            _timerText.text = ShowRemainingTime();
+
         }
-        
     }
 
     /* 
@@ -153,8 +160,10 @@ public class PlayfieldObserver : MonoBehaviour {
      * ##### RestartGame #####
      * Neuinstanziierung des Levels
      */
-    public void RestartGame ()
+    public void RestartGame()
     {
+        Debug.Log("restart Game");
+        _gameFinished = true;
         SceneManager.LoadScene(0);
     }
 
@@ -198,5 +207,12 @@ public class PlayfieldObserver : MonoBehaviour {
         _player.isDead();
         yield return new WaitForSeconds(resetTime / 2);
         _player.isAlive();
+    }
+
+    private string ShowRemainingTime ()
+    {
+        string minutes = ((int)GameTimer / 60).ToString();
+        string seconds = (GameTimer % 60).ToString("F2");
+        return minutes + ":" + seconds;
     }
 }
