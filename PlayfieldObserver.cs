@@ -6,20 +6,20 @@ using UnityEngine.UI;
 
 public class PlayfieldObserver : MonoBehaviour {
 
-    public GameObject[] TrapsPrefab_Tiles;
-    public GameObject[] TrapsPrefab_Misc;
+    public GameObject[] TrapsPrefab_Tiles;                          // Prefabs, die bei Spielertot unter den Tiles gespawned werden --> Aufwaertsbewegung
+    public GameObject[] TrapsPrefab_Misc;                           // sonstige Prefabs, die an anderen Positionen gespawned werden
 
     private List<GameObject> _tilesList = new List<GameObject>();   // speichert alle betretenen Bodenplatten, werden bei Fehltritt zurueckgesetzt
     private Player _player;                                         // Referenz auf das Skript des Spielers
     private PlayfieldInitialiser _boardInfo;                        // Referenz auf die Eigenschaften des Spielfelds
 
-    private int _coroutinesActive = 0;                              // zaehlt alle aktiven Routinen, wichtig fuer das Zuruecksetzen der Bodenplatten
+    private int _activeCoroutines = 0;                                 // zaehlt alle aktiven Routinen in movingSmooth, wichtig fuer ResetPlayer
 
     //public float GameTimer = 60.0f;
     //public Text timerText;
 
-    private float _heightDifference = 0.4f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
-    private float _smoothTime = 0.5f;                               // die Zeit, die die Bewegung der Bodenplatten benoetigt
+    private float _heightDifference = 0.3f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
+    private float _tileSpeed = 0.5f;                               // die Zeit, die die Bewegung der Bodenplatten benoetigt
 
 	// Use this for initialization
 	void Start () {
@@ -55,36 +55,57 @@ public class PlayfieldObserver : MonoBehaviour {
      * Der Vektor direction gibt die Verschiebung mit _heightDifference nach unten an und uebergibt
      * diesen Parameter an die Routine MoveTileSmooth.
      */
-    public void SteppedOn(GameObject tile)
+    public Vector3 SteppedOn(GameObject tile)
     {
+        Vector3 direction = new Vector3(tile.transform.position.x, tile.transform.position.y - _heightDifference, tile.transform.position.z);
         if (!_tilesList.Contains(tile))
         {
-            Vector3 direction = new Vector3(tile.transform.position.x, tile.transform.position.y - _heightDifference, tile.transform.position.z);
             _tilesList.Add(tile);
-            _coroutinesActive++;
-            StartCoroutine(MoveTileSmooth(tile, direction));
+            _activeCoroutines++;
+            StartCoroutine(MoveSmooth(tile, direction, _tileSpeed));
         }
+        return direction;
     }
 
     /* 
-     * ##### ResetTiles #####
+     * ##### ResetPlayer #####
      * Eine Routine (IEnumerator) ohne Uebergabeparameter.
      * Aufruf, wenn Spieler eine falsche Bodenplatte beruehrt.
      * Wartet auf das Beenden aller Routinen und setzt dann alle Tiles (indem sie eine Schleife durchlaeuft) zurueck.
      * Wartet anschliessend auf das Beenden der Routinen beim Zuruecksetzen in die Ursprungsposition.
      */
-    public IEnumerator ResetTiles()
+    public IEnumerator ResetPlayer(Vector3 currentTilePos)
     {
         // warten auf das Beenden aller laufenden Routinen des Typs MoveTileSmooth
-        while (_coroutinesActive != 0)
+        while (_activeCoroutines != 0)
         {
             yield return null;
         }
 
+        // Falle ausloesen
+        Vector3 offset = new Vector3(0, 0.5f, 0);
+        GameObject trap = Instantiate(TrapsPrefab_Tiles[Random.Range(0, TrapsPrefab_Tiles.Length)], currentTilePos - offset, Quaternion.identity);
+        float trapScale = trap.transform.Find("base").localScale.y;
+        _activeCoroutines++;
+        StartCoroutine(MoveSmooth(trap, new Vector3(currentTilePos.x, currentTilePos.y + _boardInfo.TilePrefab.transform.localScale.y / 2, currentTilePos.z), 0.2f));
+        while (_activeCoroutines != 0)
+        {
+            yield return null;
+        }
+        yield return new WaitForSeconds (0.3f);
+        _activeCoroutines++;
+        StartCoroutine(MoveSmooth(trap, currentTilePos - offset, 0.2f));
+        while (_activeCoroutines != 0)
+        {
+            yield return null;
+        }
+        Destroy(trap);
+        
+
         // Spieler zuruecksetzen
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(_tileSpeed);
         _player.isDead();
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(_tileSpeed);
         _player.isAlive();
 
 
@@ -92,12 +113,12 @@ public class PlayfieldObserver : MonoBehaviour {
         for (int i = 0; i < _tilesList.Count; i++)
         {
             Vector3 direction = new Vector3(_tilesList[i].transform.position.x, _tilesList[i].transform.position.y + _heightDifference, _tilesList[i].transform.position.z);
-            _coroutinesActive++;
-            StartCoroutine(MoveTileSmooth(_tilesList[i], direction));  // Zuruecksetzen mittels der Routine MoveTileSmooth
+            _activeCoroutines++;
+            StartCoroutine(MoveSmooth(_tilesList[i], direction, _tileSpeed));  // Zuruecksetzen mittels der Routine MoveTileSmooth
         }
 
         // warten bis wieder alle Bodenplatten verschoben wurden
-        while (_coroutinesActive != 0)
+        while (_activeCoroutines != 0)
         {
             yield return null;
         }
@@ -106,7 +127,7 @@ public class PlayfieldObserver : MonoBehaviour {
         _tilesList.Clear();
 
         // alle Routinen wurden abgearbeitet
-        _coroutinesActive = 0;
+        _activeCoroutines = 0;
 
         // das Feld wurde bereinigt, der Spieler kann sich wieder bewegen
         _player.CanMove = true;
@@ -118,18 +139,18 @@ public class PlayfieldObserver : MonoBehaviour {
      * der Endpunkt der Translation 'direction'. 
      * Die Bodenplatte hat den Endpunkt erreicht, wenn _smoothTime erreicht wurde.
      */
-    private IEnumerator MoveTileSmooth(GameObject tile, Vector3 direction)
+    private IEnumerator MoveSmooth(GameObject go, Vector3 direction, float smoothTime)
     {
         float elapsedTime = 0;                          // zaehlen der bereits vergangenen Zeit
-        Vector3 startingPos = tile.transform.position;  // der Punkt, ab dem die Translation beginnt
+        Vector3 startingPos = go.transform.position;  // der Punkt, ab dem die Translation beginnt
         
-        while (elapsedTime < _smoothTime)
+        while (elapsedTime < smoothTime)
         {
-            tile.transform.position = Vector3.Lerp(startingPos, direction, (elapsedTime / _smoothTime));
+            go.transform.position = Vector3.Lerp(startingPos, direction, (elapsedTime / smoothTime));
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        _coroutinesActive--;
+        _activeCoroutines--;
     }
 
     /* 
@@ -153,5 +174,13 @@ public class PlayfieldObserver : MonoBehaviour {
     public void RestartGame ()
     {
         SceneManager.LoadScene(0);
+    }
+
+    public IEnumerator WaitForRoutines ()
+    {
+        while (_activeCoroutines != 0)
+        {
+            yield return null;
+        }
     }
 }
