@@ -6,8 +6,8 @@ using UnityEngine.UI;
 
 public class PlayfieldObserver : MonoBehaviour {
 
-    public GameObject[] TrapsPrefab_Tiles;
-    public GameObject[] TrapsPrefab_Misc;
+    public GameObject[] TrapsPrefab_Tiles;                          // Prefabs, die bei Spielertot unter den Tiles gespawned werden --> Aufwaertsbewegung
+    public GameObject[] TrapsPrefab_Misc;                           // sonstige Prefabs, die an anderen Positionen gespawned werden
 
     private List<GameObject> _tilesList = new List<GameObject>();   // speichert alle betretenen Bodenplatten, werden bei Fehltritt zurueckgesetzt
     private Player _player;                                         // Referenz auf das Skript des Spielers
@@ -18,7 +18,7 @@ public class PlayfieldObserver : MonoBehaviour {
     //public float GameTimer = 60.0f;
     //public Text timerText;
 
-    private float _heightDifference = 0.4f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
+    private float _heightDifference = 0.3f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
     private float _smoothTime = 0.5f;                               // die Zeit, die die Bewegung der Bodenplatten benoetigt
 
 	// Use this for initialization

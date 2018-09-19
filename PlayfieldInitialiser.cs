@@ -21,14 +21,20 @@ public class PlayfieldInitialiser : MonoBehaviour
     public float PlayerSpawnHeight = 10f;
 
     // Prefabs - per Inspector einfuegen!
+    //
     public GameObject TilePrefab;                       // prefab der Bodenplatten
-    public GameObject StartPrefab;                      // prefab der Spawn-Position
     public GameObject Player;                           // Spieler prefab
     public GameObject BorderPrefab;                     // prefab der Spielumgebung
     public GameObject Glass;
     public GameObject Showcase;
+    // Materialien der verschiedenen 3D Objekte
+    public Material PlayfieldTexture;
+    public Material SpawnTexture;
+    public Material ObjectiveTexture;
     public Material [] PaintingsField;                  // alle Gemaelde-Materialien
 
+    // Variablen, die von Playfield Observer uebernommen werden
+    //
     public GameObject[] TrapsPrefab_Tiles;
     public GameObject[] TrapsPrefab_Misc;
 
@@ -203,21 +209,35 @@ public class PlayfieldInitialiser : MonoBehaviour
         {
             for (int j = 0; j < WidthPlayfield; j++)
             {
+                GameObject tile = CreateTile(PlayfieldTexture, tileSpawnV);
+                // an die Bodenplatte wird ein Kind-Element angehaengt, das im Spiel die Kollision mit dem Spieler abfragen soll
+                GameObject triggerContainer = new GameObject("triggerElem");
+                triggerContainer.transform.parent = tile.transform;
+                triggerContainer.transform.localPosition = Vector3.zero;
+                BoxCollider bc = triggerContainer.AddComponent<BoxCollider>();
+                bc.isTrigger = true;
+                bc.size = new Vector3(1f, 2f, 1f);
+
                 // korrekte Bodenplatte legen bei Übereinstimmung
                 if (_tilesField[i, j] == IS_CORRECT_TILE)
                 {
-                    CreateTile(IS_CORRECT_TILE, tileSpawnV);
+                    tile.name = "correctTile";
+                    triggerContainer.tag = "correctTile";
                 }
                 // falsche Bodenplatte legen
                 else
                 {
-                    CreateTile(IS_WRONG_TILE, tileSpawnV);
+                    tile.name = "wrongTile";
+                    triggerContainer.tag = "wrongTile";
                 }
+
                 tileSpawnV.x += TileWidth;
             }
             tileSpawnV.x = SPAWNER_V.x;
             tileSpawnV.z += TileHeight;
         } // ENDE for
+
+
 
         return tileSpawnV;
     }
@@ -226,30 +246,12 @@ public class PlayfieldInitialiser : MonoBehaviour
      * ##### CreateTile #####
      * 
      * Erzeugt eine Bodenplatte und liefert diese zurueck.
-     * Je nach Parameter wird eine andere Bodenplatte mit anderen
-     * Komponenten erzeugt
+     * Je nach Material entsteht ein anderer Bodenplattentyp
      */
-    private GameObject CreateTile(bool tileType, Vector3 position_V)
+    private GameObject CreateTile(Material mat, Vector3 position_V)
     {
         GameObject tile = Instantiate(TilePrefab, position_V, Quaternion.identity);
-
-        GameObject triggerContainer = new GameObject("triggerElem");
-        triggerContainer.transform.parent = tile.transform;
-        triggerContainer.transform.localPosition = Vector3.zero;
-        BoxCollider bc = triggerContainer.AddComponent<BoxCollider>();
-        bc.isTrigger = true;
-        bc.size = new Vector3(1f, 2f, 1f);
-
-        if (tileType == IS_CORRECT_TILE)
-        {
-            tile.name = "correctTile";
-            triggerContainer.tag = "correctTile";
-        }
-        else
-        {
-            tile.name = "wrongTile";
-            triggerContainer.tag = "wrongTile";
-        }
+        tile.GetComponent<Renderer>().material = mat;
 
         return tile;
     }
@@ -289,15 +291,15 @@ public class PlayfieldInitialiser : MonoBehaviour
      */
     private void CreateSpawn_Tiles()
     {
-        Vector3 spawn_V = SPAWNER_V;
-        spawn_V.z -= TileHeight;
+        Vector3 position_V = SPAWNER_V;
+        position_V.z -= TileHeight;
         //platziere die Startplatten - andere Moeglichkeit mittels einer grossen ganzen Flaeche???
         for (int i = 0; i < WidthPlayfield; i++)
         {
-            Instantiate(StartPrefab, spawn_V, Quaternion.identity);
-            spawn_V.x += TileWidth;
+            CreateTile(SpawnTexture, position_V);
+            position_V.x += TileWidth;
         }
-        spawn_V.x = SPAWNER_V.x;
+        position_V.x = SPAWNER_V.x;
         //spawn_V.z -= TileHeight;
     }
 
@@ -306,7 +308,7 @@ public class PlayfieldInitialiser : MonoBehaviour
      * 
      * Erzeugt die Szenerie, um das Spielbrett herum
      */
-    private void CreateAmbience(Vector3 endFinish_V)
+    private void CreateAmbience(Vector3 position_V)
     {
         Vector3 borderBase = BorderPrefab.transform.Find("base").transform.localScale;  // die eigentliche Breite des Objekts (da Elternobjekt andere Breite besitzt)
 
@@ -314,16 +316,19 @@ public class PlayfieldInitialiser : MonoBehaviour
         GameObject rearwall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         rearwall.name = "rearwall";
         float rearwallScaleX = TileWidth * WidthPlayfield + borderBase.x * 2;
-        float rearwallScaleY = 10;
+        float rearwallScaleY = 10f;
         float rearwallScaleZ = 1f;
         rearwall.transform.localScale = new Vector3(rearwallScaleX, rearwallScaleY, rearwallScaleZ);
-        endFinish_V.x = endFinish_V.x + (TileWidth * WidthPlayfield) / 2 - (TilePrefab.transform.localScale.x / 2);
-        endFinish_V.z = endFinish_V.z - (TileHeight / 2) + (rearwall.transform.localScale.z / 2) - TileOffset / 2;
-        rearwall.transform.position = new Vector3(endFinish_V.x, endFinish_V.y + (rearwallScaleY / 2), endFinish_V.z);
+        position_V.x = position_V.x + (TileWidth * WidthPlayfield) / 2 - (TilePrefab.transform.localScale.x / 2);
+        position_V.y = position_V.y + TilePrefab.transform.localScale.y / 2;
+        position_V.z = position_V.z - (TileHeight / 2) + (rearwall.transform.localScale.z / 2) - TileOffset / 2;
+        rearwall.transform.position = new Vector3(position_V.x, position_V.y + (rearwallScaleY / 2), position_V.z);
 
-        Vector3 ambienceSpawn_V = new Vector3 (endFinish_V.x - (rearwallScaleX / 2) + (borderBase.x / 2)
-                                        , SPAWNER_V.y, 
-                                        endFinish_V.z - (rearwallScaleZ / 2) - (borderBase.z / 2));
+        Vector3 ambienceSpawn_V = new Vector3 (
+                                                position_V.x - (rearwallScaleX / 2) + (borderBase.x / 2), 
+                                                position_V.y, 
+                                                position_V.z - (rearwallScaleZ / 2) - (borderBase.z / 2)
+                                                );
 
         // Generiere Seitenbegrenzungen
         int nameCnt = 0;
@@ -347,24 +352,24 @@ public class PlayfieldInitialiser : MonoBehaviour
     /* 
      * ##### CreateFinish_Tiles #####
      */
-    private Vector3 CreateFinish_Tiles(Vector3 finish_V)
+    private Vector3 CreateFinish_Tiles(Vector3 position_V)
     {
         int length = 2;
 
-        Instantiate(Showcase, new Vector3(finish_V.x + (WidthPlayfield - 1) * TileWidth / 2, finish_V.y, finish_V.z + TileHeight * (length - 1)), Quaternion.identity);
+        Instantiate(Showcase, new Vector3(position_V.x + (WidthPlayfield - 1) * TileWidth / 2, position_V.y, position_V.z + TileHeight * (length - 1)), Quaternion.identity);
 
         for (int i = 0; i < length; i++)
         {
             for (int j = 0; j < WidthPlayfield; j++)
             {
-                Instantiate(StartPrefab, finish_V, Quaternion.identity);
-                finish_V.x += TileWidth;
+                CreateTile(ObjectiveTexture, position_V);
+                position_V.x += TileWidth;
             }
-            finish_V.x = SPAWNER_V.x;
-            finish_V.z += StartPrefab.transform.localScale.z;
+            position_V.x = SPAWNER_V.x;
+            position_V.z += TileHeight;
         }
 
-        return finish_V;
+        return position_V;
     }
 
     /* 
