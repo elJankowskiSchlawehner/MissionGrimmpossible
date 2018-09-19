@@ -41,6 +41,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        transform.position = Vector3.zero;
         SPAWNER_V = transform.position;                 // Initialiserung des Startpunkts
 
         // Fehlerfall abdecken, falls Groesse und Hoehe des Spielfelds kleiner als 1
@@ -356,7 +357,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     {
         int length = 2;
 
-        Instantiate(Showcase, new Vector3(position_V.x + (WidthPlayfield - 1) * TileWidth / 2, position_V.y, position_V.z + TileHeight * (length - 1)), Quaternion.identity);
+        Instantiate(Showcase, new Vector3(position_V.x + (WidthPlayfield - 1) * TileWidth / 2, position_V.y + TilePrefab.transform.localScale.y / 2, position_V.z + TileHeight * (length - 1)), Quaternion.identity);
 
         for (int i = 0; i < length; i++)
         {
