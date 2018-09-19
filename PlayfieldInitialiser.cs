@@ -41,6 +41,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        transform.position = Vector3.zero;
         SPAWNER_V = transform.position;                 // Initialiserung des Startpunkts
 
         // Fehlerfall abdecken, falls Groesse und Hoehe des Spielfelds kleiner als 1
