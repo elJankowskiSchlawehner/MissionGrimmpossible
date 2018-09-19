@@ -24,13 +24,15 @@ public class Glass : MonoBehaviour {
             GameObject glassBroken = Instantiate(GlassPrefabs[Random.Range(0, GlassPrefabs.Length)], gameObject.transform.position, gameObject.transform.rotation);
             glassBroken.name = "glassBroken";
 
-            Rigidbody[] pieces = glassBroken.GetComponentsInChildren<Rigidbody>();
-
-            foreach (Rigidbody rb in pieces)
+            Transform[] pieces = glassBroken.GetComponentsInChildren<Transform>();
+            foreach (Transform child in pieces)
             {
-                rb.gameObject.AddComponent<DecayScript>();
+                MeshCollider mc = child.gameObject.AddComponent<MeshCollider>();
+                mc.convex = true;
+                Rigidbody rb = child.gameObject.AddComponent<Rigidbody>();
+                child.gameObject.AddComponent<DecayScript>();
                 rb.AddExplosionForce(50.0f, transform.position, 5.0f, -5.0f);
-                Physics.IgnoreCollision(_player.gameObject.GetComponent<Collider>(), rb.gameObject.GetComponent<Collider>());
+                Physics.IgnoreCollision(_player.gameObject.GetComponent<Collider>(), child.gameObject.GetComponent<Collider>());
             }
             glassBroken.transform.DetachChildren();
             Destroy(glassBroken);

@@ -44,6 +44,11 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (_boardObserver.GameTimer <= 0f)
+        {
+            CanMove = false;
+        }
+
         if (CanMove)
         {
             _boardObserver.GameStarted = true;

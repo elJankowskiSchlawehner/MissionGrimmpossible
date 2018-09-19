@@ -39,7 +39,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     public GameObject[] TrapsPrefab_Misc;
 
     // Use this for initialization
-    void Start()
+    void Awake()
     {
         transform.position = Vector3.zero;
         SPAWNER_V = transform.position;                 // Initialiserung des Startpunkts
