@@ -101,13 +101,13 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter(Collider tileCollider)
     {
-        _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
+        Vector3 currentTilePos = _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
 
         if (tileCollider.tag == "wrongTile")
         {
             CanMove = false;
-            //transform.position = ResetPoint_V;
-            StartCoroutine(_boardObserver.ResetTiles());
+            // Falle Routine auch ausfuehren
+            StartCoroutine(_boardObserver.ResetPlayer(currentTilePos));
         }
         else if (tileCollider.tag == "correctTile")
         {
