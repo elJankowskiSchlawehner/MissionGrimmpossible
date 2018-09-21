@@ -33,11 +33,6 @@ public class PlayfieldInitialiser : MonoBehaviour
     public Material ObjectiveTexture;
     public Material [] PaintingsField;                  // alle Gemaelde-Materialien
 
-    // Variablen, die von Playfield Observer uebernommen werden
-    //
-    public GameObject[] TrapsPrefab_Tiles;
-    public GameObject[] TrapsPrefab_Misc;
-
     // Use this for initialization
     void Awake()
     {
@@ -192,7 +187,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         CreateSpawn_Tiles();
         SpawnPlayer();
 
-        gameObject.AddComponent<PlayfieldObserver>();
+        //gameObject.AddComponent<PlayfieldObserver>();
     }
 
     /* 
