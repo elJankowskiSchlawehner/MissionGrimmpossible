@@ -171,7 +171,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         } // ENDE WHILE
 
         // Generierung des Spielfelds
-        //CreateBoard();
+        CreateBoard();
     }
 
     /* 
