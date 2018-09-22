@@ -22,8 +22,8 @@ public class TrapManager : MonoBehaviour {
         _observer = GetComponent<PlayfieldObserver>();
         _boardInfo = GetComponent<PlayfieldInitialiser>();
 
-        _idleTime = _trapAnimationTime / 2;
-        _moveTime = (_trapAnimationTime - _idleTime) / 2;
+        //_idleTime = _trapAnimationTime / 2;
+        //_moveTime = (_trapAnimationTime - _idleTime) / 2;
 	}
 	
 	// Update is called once per frame
@@ -49,6 +49,9 @@ public class TrapManager : MonoBehaviour {
     {
         _animationFinished = false;
 
+        _idleTime = _trapAnimationTime / 2;
+        _moveTime = (_trapAnimationTime - _idleTime) / 2;
+
         Vector3 offset = new Vector3(0, 0.5f, 0);
         GameObject trap = Instantiate(TrapsPrefab_Tiles[Random.Range(0, TrapsPrefab_Tiles.Length)], currentTilePos - offset, Quaternion.identity);
         float trapScale = trap.transform.Find("base").localScale.y;
@@ -70,19 +73,22 @@ public class TrapManager : MonoBehaviour {
     {
         _animationFinished = false;
 
+        _idleTime = _trapAnimationTime / 2;
+        _moveTime = (_trapAnimationTime - _idleTime) / 3;
+
         List<Transform> shootingPos = new List<Transform>();
         RaycastHit hit;
-        if (Physics.Raycast(playerPos, Vector3.left, out hit, _boardInfo.WidthPlayfield * _boardInfo.TileWidth))
+        if (Physics.Raycast(playerPos, Vector3.left, out hit, _boardInfo.getWidthField() * _boardInfo.TileWidth))
         {
             shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
-        if (Physics.Raycast(playerPos, Vector3.right, out hit, _boardInfo.WidthPlayfield * _boardInfo.TileWidth))
+        if (Physics.Raycast(playerPos, Vector3.right, out hit, _boardInfo.getWidthField() * _boardInfo.TileWidth))
         {
             shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
         // welche Turret von welcher Seite wird genommen?
         int spawnIndx = Random.Range(0, shootingPos.Count);
-
+        // Berechnung vor der eigentlichen Bewegung
         // Rotation Y-Achse
         GameObject turret = shootingPos[spawnIndx].parent.gameObject;
         Vector3 adjacent_V = turret.transform.TransformDirection(Vector3.forward);
@@ -110,16 +116,18 @@ public class TrapManager : MonoBehaviour {
         turret.transform.localRotation = Quaternion.Euler(0, 90, 0);
         */
 
-        yield return _observer.RotateSmooth(turret, turret.transform.localRotation.eulerAngles.x + angleX, turret.transform.localRotation.eulerAngles.y + angleY, 0, 1f);
-        yield return _observer.WaitForOtherRoutines();
+        // eigentliche Bewegung der Falle
+        yield return _observer.RotateSmooth(turret, turret.transform.localRotation.eulerAngles.x + angleX, turret.transform.localRotation.eulerAngles.y + angleY, 0, _moveTime);
         
         // Turret Animation
         GameObject trap = Instantiate(Particles[Random.Range(0, Particles.Length)], shootingPos[spawnIndx].position, Quaternion.identity);
-        StartCoroutine(_observer.MoveSmooth(trap, playerPos, 0.3f));
+        StartCoroutine(_observer.MoveSmooth(trap, playerPos, _moveTime));
         yield return _observer.WaitForOtherRoutines();
 
+        yield return new WaitForSeconds(_idleTime);
+
         // auf Ursprungsposition zuruecksetzen
-        yield return _observer.RotateSmooth(turret, 0, 90, 0, 1f);
+        yield return _observer.RotateSmooth(turret, 0, 90, 0, _moveTime);
         yield return _observer.WaitForOtherRoutines();
         
         Destroy(trap, 2.0f);
