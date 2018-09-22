@@ -65,7 +65,7 @@ public class Player : MonoBehaviour
                 transform.position += new Vector3(-1 * _stepSide, 0, 0);
             }
 
-            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.WidthPlayfield - 1))
+            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1))
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
                 transform.position += new Vector3(_stepSide, 0, 0);

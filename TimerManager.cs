@@ -27,7 +27,7 @@ public class TimerManager : MonoBehaviour {
             _timerText.color = Color.red;
         }
 
-        if (_boardObserver.GameTimer <= 10.0f && _boardObserver.GameTimer > 0)
+        if (_boardObserver.GameTimer > 0 && _boardObserver.GameTimer <= 10.0f)
         {
             _timerText.color = Color.Lerp(_textColor, Color.red, Mathf.PingPong(Time.time, 1));
         }

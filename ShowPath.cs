@@ -49,11 +49,11 @@ public class ShowPath : MonoBehaviour {
         _displayField = new GameObject("displayField");
 
         _tileSize = TileSprite.bounds.size.x + OFFSET;
-        _displayFieldWidth = (_boardInfo.WidthPlayfield * _tileSize) - OFFSET;  // Breite der Anzeige - letztes OFFSET nach dem letzten Tile wird abgezogen
+        _displayFieldWidth = (_boardInfo.GetWidthPlayfield() * _tileSize) - OFFSET;  // Breite der Anzeige - letztes OFFSET nach dem letzten Tile wird abgezogen
         float displayScale = (_pathUI.PhoneImage.rectTransform.rect.width / 100 - 0.3f) / _displayFieldWidth; // Pixel des Smartphones in Units umrechnen
         _displayField.transform.localScale = new Vector3(displayScale, displayScale, 1f);
 
-        GenerateSprites(_boardInfo.HeightPlayfield, _boardInfo.WidthPlayfield);
+        GenerateSprites(_boardInfo.GetHeightPlayfield(), _boardInfo.GetWidthPlayfield());
         coroutineDisplay = DisplayPath();                               // diese Coroutine kann spaeter auf Tastendruck gestoppt werden
 
         // zur Kamera verschieben
