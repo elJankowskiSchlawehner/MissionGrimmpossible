@@ -36,15 +36,15 @@ public class PlayfieldObserver : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (GameStarted)
+        if (GameStarted && !_gameFinished)
         {
             GameTimer -= Time.deltaTime;
-            
-            if (GameTimer <= 0f)
-            {
-                GameTimer = 0f;
-                RestartGame(2.0f);
-            }
+        }
+
+        if (GameTimer <= 0f)
+        {
+            GameTimer = 0f;
+            RestartGame(2.0f);
         }
 
         if (_gameFinished)
@@ -136,6 +136,23 @@ public class PlayfieldObserver : MonoBehaviour {
             yield return null;
         }
         _activeCoroutines--;
+    }
+
+    public IEnumerator RotateSmooth(GameObject go, float x, float y, float z, float smoothTime)
+    {
+        //Debug.Log("before: " + go.transform.localRotation.eulerAngles);
+        float elapsedTime = 0;
+        Quaternion targetRot = Quaternion.identity;
+        targetRot.eulerAngles = new Vector3(x, y, z);
+        Debug.Log(targetRot.eulerAngles);
+
+        while (elapsedTime < smoothTime)
+        {
+            go.transform.localRotation = Quaternion.Lerp(go.transform.localRotation, targetRot, (elapsedTime / smoothTime));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        //_activeCoroutines--;
     }
 
     /* 

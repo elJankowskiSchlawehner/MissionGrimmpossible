@@ -33,8 +33,9 @@ public class TrapManager : MonoBehaviour {
 
     public IEnumerator TriggerRandomTrap(Vector3 currentTilePos, Vector3 playerPos)
     {
-        if (Random.Range(0f, 1f) < 0.5f) StartCoroutine(TriggerTrap_Tiles(currentTilePos)); else StartCoroutine(TriggerTrap_Misc(playerPos));
-        while (!_animationFinished)
+        // waehle eine der Fallenarten aus
+        if (Random.Range(0f, 1f) < 0.5f) StartCoroutine(TriggerTrap_Tiles(currentTilePos)); else StartCoroutine(TriggerTrap_Turret(playerPos));
+        while (!_animationFinished)     // solange die Animation der Falle noch nicht zuende ist, bleibe in dieser Funktion
         {
             yield return null;
         }
@@ -65,7 +66,7 @@ public class TrapManager : MonoBehaviour {
         _animationFinished = true;
     }
 
-    private IEnumerator TriggerTrap_Misc(Vector3 playerPos)
+    private IEnumerator TriggerTrap_Turret(Vector3 playerPos)
     {
         _animationFinished = false;
 
@@ -92,26 +93,35 @@ public class TrapManager : MonoBehaviour {
         {
             angleY = -angleY;   // ja, dann ist negativer Winkel
         }
-        turret.transform.Rotate(0, turret.transform.localRotation.x + angleY, 0);
 
         // Rotation X-Achse
         adjacent_V = turret.transform.TransformDirection(Vector3.forward);
         hypotenuse_V = playerPos - turret.transform.position;
         float angleX = Vector3.Angle(adjacent_V, hypotenuse_V);
-        turret.transform.Rotate(turret.transform.localRotation.x + angleX, 0, 0);
 
+        //Debug.Log(angleX + " " + angleY + " " + 0);
+
+        // working code
+        /*
+        turret.transform.Rotate(0, turret.transform.localRotation.y + angleY, 0);
+        turret.transform.Rotate(turret.transform.localRotation.x + angleX, 0, 0);
+        Debug.Log(turret.transform.localRotation.eulerAngles);
+        yield return new WaitForSeconds(_idleTime);
+        turret.transform.localRotation = Quaternion.Euler(0, 90, 0);
+        */
+
+        yield return _observer.RotateSmooth(turret, turret.transform.localRotation.eulerAngles.x + angleX, turret.transform.localRotation.eulerAngles.y + angleY, 0, 1f);
+        yield return _observer.WaitForOtherRoutines();
+        
         // Turret Animation
-        yield return new WaitForSeconds(0.5f);
         GameObject trap = Instantiate(Particles[Random.Range(0, Particles.Length)], shootingPos[spawnIndx].position, Quaternion.identity);
         StartCoroutine(_observer.MoveSmooth(trap, playerPos, 0.3f));
         yield return _observer.WaitForOtherRoutines();
-        yield return new WaitForSeconds(0.5f);
 
         // auf Ursprungsposition zuruecksetzen
-        turret.transform.localRotation = Quaternion.Euler(0, 90, 0);
-
-        yield return new WaitForSeconds(_idleTime);
-
+        yield return _observer.RotateSmooth(turret, 0, 90, 0, 1f);
+        yield return _observer.WaitForOtherRoutines();
+        
         Destroy(trap, 2.0f);
 
         _animationFinished = true;
