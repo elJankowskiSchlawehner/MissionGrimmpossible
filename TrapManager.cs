@@ -69,28 +69,50 @@ public class TrapManager : MonoBehaviour {
     {
         _animationFinished = false;
 
-        List<Vector3> triggerSpawns = new List<Vector3>();
+        List<Transform> shootingPos = new List<Transform>();
         RaycastHit hit;
         if (Physics.Raycast(playerPos, Vector3.left, out hit, _boardInfo.WidthPlayfield * _boardInfo.TileWidth))
         {
-            triggerSpawns.Add(hit.collider.transform.position);
+            shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
         if (Physics.Raycast(playerPos, Vector3.right, out hit, _boardInfo.WidthPlayfield * _boardInfo.TileWidth))
         {
-            triggerSpawns.Add(hit.collider.transform.position);
+            shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
-        //triggerSpawns.Add(playerPos + new Vector3(0, 30, 0));
+        // welche Turret von welcher Seite wird genommen?
+        int spawnIndx = Random.Range(0, shootingPos.Count);
 
-        //GameObject trap = Instantiate(TrapsPrefab_Misc[Random.Range(0, TrapsPrefab_Misc.Length)], new Vector3(6, 0, 15), Quaternion.identity);
-        //Vector3 start = trap.transform.Find("shootingPos").position;
-        GameObject ps = Instantiate(Particles[Random.Range(0, Particles.Length)], triggerSpawns[Random.Range(0, triggerSpawns.Count)], Quaternion.identity);
-        StartCoroutine(_observer.MoveSmooth(ps, playerPos, 0.3f));
+        // Rotation Y-Achse
+        GameObject turret = shootingPos[spawnIndx].parent.gameObject;
+        Vector3 adjacent_V = turret.transform.TransformDirection(Vector3.forward);
+        Vector3 hypotenuse_V = new Vector3(playerPos.x, 0, playerPos.z) - new Vector3(turret.transform.position.x, 0, turret.transform.position.z);
+        float angleY = Vector3.Angle(adjacent_V, hypotenuse_V);
+        Vector3 cross_V = Vector3.Cross(adjacent_V, hypotenuse_V);
+        if (cross_V.y < 0)      // zeigt der Normalenvektor nach unten?
+        {
+            angleY = -angleY;   // ja, dann ist negativer Winkel
+        }
+        turret.transform.Rotate(0, turret.transform.localRotation.x + angleY, 0);
+
+        // Rotation X-Achse
+        adjacent_V = turret.transform.TransformDirection(Vector3.forward);
+        hypotenuse_V = playerPos - turret.transform.position;
+        float angleX = Vector3.Angle(adjacent_V, hypotenuse_V);
+        turret.transform.Rotate(turret.transform.localRotation.x + angleX, 0, 0);
+
+        // Turret Animation
+        yield return new WaitForSeconds(0.5f);
+        GameObject trap = Instantiate(Particles[Random.Range(0, Particles.Length)], shootingPos[spawnIndx].position, Quaternion.identity);
+        StartCoroutine(_observer.MoveSmooth(trap, playerPos, 0.3f));
         yield return _observer.WaitForOtherRoutines();
+        yield return new WaitForSeconds(0.5f);
+
+        // auf Ursprungsposition zuruecksetzen
+        turret.transform.localRotation = Quaternion.Euler(0, 90, 0);
 
         yield return new WaitForSeconds(_idleTime);
 
-        //Destroy(trap);
-        Destroy(ps, 2.0f);
+        Destroy(trap, 2.0f);
 
         _animationFinished = true;
     }
