@@ -140,7 +140,7 @@ public class PlayfieldObserver : MonoBehaviour {
 
     public IEnumerator RotateSmooth(GameObject go, float x, float y, float z, float smoothTime)
     {
-        //Debug.Log("before: " + go.transform.localRotation.eulerAngles);
+        //_activeCoroutines++;
         float elapsedTime = 0;
         Quaternion targetRot = Quaternion.identity;
         targetRot.eulerAngles = new Vector3(x, y, z);
@@ -162,7 +162,7 @@ public class PlayfieldObserver : MonoBehaviour {
      */
     public void CheckWin ()
     {
-        float endConditionY = transform.position.z + _boardInfo.TileHeight * _boardInfo.HeightPlayfield;
+        float endConditionY = transform.position.z + _boardInfo.TileHeight * _boardInfo.getHeightField();
 
         if (_player.transform.position.z >= endConditionY)
         {
