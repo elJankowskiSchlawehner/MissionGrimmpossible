@@ -25,6 +25,7 @@ public class ShowPathUI : MonoBehaviour {
 
     private Texture2D _blackTex;
     private float _alphaTex;
+    public bool isFading = false;
 
     // Use this for initialization
     void Start () {
@@ -163,23 +164,58 @@ public class ShowPathUI : MonoBehaviour {
      * Fade Out Effekt zu erzeugen. Wenn das Bild noch nicht alles ueberdeckt wird false zurueckgegeben
      * Bei Alpha = 1 ist das Bild komplett schwarz und es wird true zurueckgegeben
      */
-    public bool FadedOut(float deltaTime)
+    public IEnumerator FadeOut()
     {
         // Alternative: 
         //Image fadeOut = transform.Find("FadeImage").GetComponent<Image>();
-        if (_alphaTex < 1)
+        isFading = true;
+        while (_alphaTex < 1)
         {
-             _alphaTex += deltaTime * 0.4f;
-        }
+            if (_alphaTex < 1)
+            {
+                _alphaTex += Time.deltaTime * 0.4f;
+            }
 
-        if (_alphaTex >= 1)
-        {
-            _alphaTex = 1.0f;
-            return true;
+            if (_alphaTex >= 1)
+            {
+                _alphaTex = 1.0f;
+            }
+            _blackTex.SetPixel(0, 0, new Color(0, 0, 0, _alphaTex));
+            _blackTex.Apply();
+            yield return null;
         }
-        _blackTex.SetPixel(0, 0, new Color(0, 0, 0, _alphaTex));
-        _blackTex.Apply();
-        return false;
+        isFading = false;
+    }
+
+    /* 
+     * ##### FadeIn #####
+     *
+     * Verringert den Alpha Wert eines Bildes des Canvas, um so einen
+     * Fade Out Effekt zu erzeugen. Wenn das Bild noch nicht alles ueberdeckt wird false zurueckgegeben
+     * Bei Alpha = 1 ist das Bild komplett schwarz und es wird true zurueckgegeben
+     */
+    public IEnumerator FadeIn()
+    {
+        // Alternative: 
+        //Image fadeOut = transform.Find("FadeImage").GetComponent<Image>();
+        isFading = true;
+        while (_alphaTex > 0)
+        {
+            if (_alphaTex <= 1)
+            {
+                _alphaTex -= Time.deltaTime * 0.5f;
+            }
+
+            if (_alphaTex <= 0)
+            {
+                _alphaTex = 0f;
+            }
+            _blackTex.SetPixel(0, 0, new Color(0, 0, 0, _alphaTex));
+            _blackTex.Apply();
+            yield return null;
+        }
+        isFading = false;
+
     }
 
     private void OnGUI()
