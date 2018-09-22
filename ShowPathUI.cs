@@ -5,7 +5,8 @@ using UnityEngine;
 
 public class ShowPathUI : MonoBehaviour {
 
-    private ShowPath _manager;
+    private ShowPath _pathManager;
+    private Canvas _canvas;
     private int _listCount;                     // Anzahl aller korrekten Platten
     private float _totalAnimTime;               // die Zeit, die benoetigt wird, bis PathHelp vollstaendig angezeigt wird
 
@@ -25,13 +26,16 @@ public class ShowPathUI : MonoBehaviour {
 
     private Texture2D _blackTex;
     private float _alphaTex;
+    [HideInInspector]
     public bool isFading = false;
 
     // Use this for initialization
     void Start () {
-        _manager = GameObject.Find("boardGameManager").GetComponent<ShowPath>();
-        _listCount = _manager.GetCorrectTilesCount();
-        _totalAnimTime = _listCount * _manager.GetDisplayAnimTime();
+        _pathManager = GameObject.Find("boardGameManager").GetComponent<ShowPath>();
+        _canvas = gameObject.GetComponent<Canvas>();
+        _canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        _listCount = _pathManager.GetCorrectTilesCount();
+        _totalAnimTime = _listCount * _pathManager.GetDisplayAnimTime();
 
         LoadingText.text = "initialising ...";
         ProgressText.text = "";
@@ -44,7 +48,7 @@ public class ShowPathUI : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (_manager._displayStarted == true && (ProgressText.text.Length < TOTAL_PROGRESS_BARS))
+		if (_pathManager._displayStarted == true && (ProgressText.text.Length < TOTAL_PROGRESS_BARS))
         {
             // Rotierende Animation
             DisplayLoadingAnimation();
@@ -77,7 +81,7 @@ public class ShowPathUI : MonoBehaviour {
     */
     private IEnumerator LoadingAnimationRoutine ()
     {
-        while (!_manager._displayFinished)
+        while (!_pathManager._displayFinished)
         {
             switch (_loadingStep)
             {
@@ -129,7 +133,7 @@ public class ShowPathUI : MonoBehaviour {
             _progressStep = 0f;
         }
         
-        if (_manager._displayFinished)
+        if (_pathManager._displayFinished)
         {
             ProgressText.text = "";
             for (int i = 0; i < 25; i++)
@@ -149,7 +153,7 @@ public class ShowPathUI : MonoBehaviour {
     {
         _currentAnimTime += Time.deltaTime;
 
-        if (_currentAnimTime >= _totalAnimTime || _manager._displayFinished)
+        if (_currentAnimTime >= _totalAnimTime || _pathManager._displayFinished)
         {
             _currentAnimTime = _totalAnimTime;
         }
@@ -216,6 +220,16 @@ public class ShowPathUI : MonoBehaviour {
         }
         isFading = false;
 
+    }
+
+    public void SetCanvasOverlay()
+    {
+        _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+    }
+
+    public void EnableTimer()
+    {
+        transform.Find("Timer").gameObject.SetActive(true);
     }
 
     private void OnGUI()
