@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine;
 
+// Verwaltet das Spiel und das Geschehene auf dem Spielfeld
+//
 public class PlayfieldObserver : MonoBehaviour {
     private List<GameObject> _tilesList = new List<GameObject>();   // speichert alle betretenen Bodenplatten, werden bei Fehltritt zurueckgesetzt
     private Player _player;                                         // Referenz auf das Skript des Spielers
@@ -51,7 +53,6 @@ public class PlayfieldObserver : MonoBehaviour {
             {
                 SceneManager.LoadScene(0);
             }
-
             _restartTimer += Time.deltaTime;
         }
     }

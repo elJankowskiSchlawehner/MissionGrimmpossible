@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Erstellt das Spielfeld und spawned einzelne 
 public class PlayfieldInitialiser : MonoBehaviour
 {
     // Konstanten
@@ -25,6 +26,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     public GameObject TilePrefab;                       // prefab der Bodenplatten
     public GameObject Player;                           // Spieler prefab
     public GameObject BorderPrefab;                     // prefab der Spielumgebung
+    public GameObject BorderTurret;
     public GameObject Glass;
     public GameObject Showcase;
     // Materialien der verschiedenen 3D Objekte
@@ -183,8 +185,6 @@ public class PlayfieldInitialiser : MonoBehaviour
 
         CreateSpawn_Tiles();
         SpawnPlayer();
-
-        //gameObject.AddComponent<PlayfieldObserver>();
     }
 
     /* 
@@ -300,7 +300,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     }
 
     /* 
-     * ##### CreateEnvironment #####
+     * ##### CreateAmbience #####
      * 
      * Erzeugt die Szenerie, um das Spielbrett herum
      */
@@ -331,14 +331,16 @@ public class PlayfieldInitialiser : MonoBehaviour
         do
         {
             BorderPrefab.name = "border_left" + nameCnt;
-            BorderPrefab.transform.Find("painting_left").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
-            BorderPrefab.transform.Find("painting_right").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
-            Instantiate(BorderPrefab, ambienceSpawn_V, Quaternion.identity);
+            BorderPrefab.transform.Find("frame").Find("painting").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
+            //BorderPrefab.transform.Find("frame_right").Find("painting_right").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
+            GameObject border_left = Instantiate(BorderPrefab, ambienceSpawn_V, Quaternion.identity);
+            border_left.transform.Find("frame").transform.localPosition = new Vector3(-1.39f, 3.74f, -4.0f);
 
             BorderPrefab.name = "border_right" + nameCnt;
-            BorderPrefab.transform.Find("painting_left").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
-            BorderPrefab.transform.Find("painting_right").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
-            Instantiate(BorderPrefab, ambienceSpawn_V + new Vector3((TileWidth * WidthPlayfield) - TileOffset + borderBase.x, 0, 0), Quaternion.Euler(0, 180, 0));
+            BorderPrefab.transform.Find("frame").Find("painting").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
+            //BorderPrefab.transform.Find("frame_right").Find("painting_right").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
+            GameObject border_right = Instantiate(BorderPrefab, ambienceSpawn_V + new Vector3((TileWidth * WidthPlayfield) - TileOffset + borderBase.x, 0, 0), Quaternion.Euler(0, 180, 0));
+            border_right.transform.Find("frame").transform.localPosition = new Vector3(-1.39f, 3.74f, 4.0f);
 
             ambienceSpawn_V.z -= borderBase.z;
             nameCnt++;
