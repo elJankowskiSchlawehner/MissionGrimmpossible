@@ -13,8 +13,8 @@ public class PlayfieldInitialiser : MonoBehaviour
     
     // Variablen
     //
-    private int _heightPlayfield = 7;                     
-    private int _widthPlayfield = 5;                      
+    public int HeightPlayfield = 7;                     
+    public int WidthPlayfield = 5;                      
     public bool[,] TilesField;                          // [hoehe,breite], verwaltet den Bodenplattentyp und gibt Spielfeldgroesse an
     public float TileOffset = 0.0f;                     // Abstand zwischen den einzelnen Tiles
     [HideInInspector]
@@ -35,26 +35,26 @@ public class PlayfieldInitialiser : MonoBehaviour
     public Material ObjectiveTexture;
     public Material [] PaintingsField;                  // alle Gemaelde-Materialien
 
-    private ShowPathManager _pathHelp;
+    private ShowPath _pathHelp;
 
     // Use this for initialization
     void Awake()
     {
-        _pathHelp = gameObject.GetComponent<ShowPathManager>();
+        _pathHelp = gameObject.GetComponent<ShowPath>();
 
         // Fehlerfall abdecken, falls Groesse und Hoehe des Spielfelds kleiner als 1
-        if (_widthPlayfield < 1)
+        if (WidthPlayfield < 1)
         {
-            _widthPlayfield = 1;
+            WidthPlayfield = 1;
         }
-        if (_heightPlayfield < 1)
+        if (HeightPlayfield < 1)
         {
-            _heightPlayfield = 1;
+            HeightPlayfield = 1;
         }
 
-        TilesField = new bool[_heightPlayfield, _widthPlayfield];          
+        TilesField = new bool[HeightPlayfield, WidthPlayfield];          
 
-        int posX = (int)Random.Range(0, _widthPlayfield);    // Startwert auf der X-Achse wird gewuerfelt
+        int posX = (int)Random.Range(0, WidthPlayfield);    // Startwert auf der X-Achse wird gewuerfelt
         int posY = 0;                                   // zaehlt die "Zeilen" des Arrays tilesField hoch, Start bei 0
 
         TilesField[posY, posX] = IS_CORRECT_TILE;      // Startwert als ersten Wert in das Spielfeld eintragen
@@ -63,7 +63,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         int pathDirection = 0;                          // speichert die moeglichen Richtungen des Pfades, initial = 0 (vorwaerts)
         int pathLength;                                 // speichert die Laenge des Pfads in die gewuerfelte Richtung
         int pathEnd;                                    // Abbruchbedingung for-Schleife, ansonsten wird currentPosition in der Bedingung ueberschrieben
-        int maxForwardLength = (_heightPlayfield / 3 + 1);   // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
+        int maxForwardLength = (HeightPlayfield / 3 + 1);   // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
 
         TileOffset = Mathf.Abs(TileOffset);             
         TileWidth = TilePrefab.transform.localScale.x + TileOffset;   // speichert die Breite des Tile Prefabs
@@ -73,7 +73,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         int heightCounter = 1;                          // verhindert einen aufeinanderfolgenden links-rechts-Schritt, = 1, da Startwert als ein Schritt gilt, ansonsten = 2
 
         // legt den richtigen Laufpfad fest
-        while (posY < (_heightPlayfield - 1))
+        while (posY < (HeightPlayfield - 1))
         {
             // welche Richtung wurde gewaehlt, Startwert ist immer vorwaerts
             switch (pathDirection)
@@ -84,7 +84,7 @@ public class PlayfieldInitialiser : MonoBehaviour
                     heightCounter -= pathLength;            // Hoehenunterschied durch Schritt berechnen
 
                     pathEnd = posY + pathLength;
-                    for (int indxY = (posY + 1); indxY <= pathEnd && posY < (_heightPlayfield - 1); indxY++)
+                    for (int indxY = (posY + 1); indxY <= pathEnd && posY < (HeightPlayfield - 1); indxY++)
                     {
                         TilesField[indxY, posX] = IS_CORRECT_TILE;
                         _pathHelp.AddToPathList(posX, indxY);
@@ -94,7 +94,7 @@ public class PlayfieldInitialiser : MonoBehaviour
                     // naechste Pfadrichtung waehlen
                     //
                     // Fall abdecken, falls Breite doch mal 1 entsprechen sollte
-                    if (_widthPlayfield == 1)
+                    if (WidthPlayfield == 1)
                     {
                         pathDirection = 0;
                         break;
@@ -107,7 +107,7 @@ public class PlayfieldInitialiser : MonoBehaviour
                         {
                             pathDirection = 1;
                         }
-                        else if (posX == (_widthPlayfield - 1))     // Position ganz rechts --> neachste Wegrichtung ist links
+                        else if (posX == (WidthPlayfield - 1))     // Position ganz rechts --> neachste Wegrichtung ist links
                         {
                             pathDirection = -1;
                         }
@@ -124,7 +124,7 @@ public class PlayfieldInitialiser : MonoBehaviour
                         {
                             pathDirection = Random.Range(-1, 1);
                         }
-                        else if (heightCounter > 0 && isRight && posX != (_widthPlayfield - 1))
+                        else if (heightCounter > 0 && isRight && posX != (WidthPlayfield - 1))
                         {
                             pathDirection = Random.Range(0, 2);
                         }
@@ -152,7 +152,7 @@ public class PlayfieldInitialiser : MonoBehaviour
                     // PFADRICHTUNG RECHTS
                     else if (pathDirection > 0)
                     {
-                        pathLength = (int)Random.Range(1, (_widthPlayfield - posX));
+                        pathLength = (int)Random.Range(1, (WidthPlayfield - posX));
 
                         pathEnd = posX + pathLength;
                         for (int indxX = (posX + 1); indxX <= pathEnd; indxX++)
@@ -206,9 +206,9 @@ public class PlayfieldInitialiser : MonoBehaviour
     {
         Vector3 tileSpawnV = SPAWNER_V;
         // platziere die restlichen Bodenplatten
-        for (int i = 0; i < _heightPlayfield; i++)
+        for (int i = 0; i < HeightPlayfield; i++)
         {
-            for (int j = 0; j < _widthPlayfield; j++)
+            for (int j = 0; j < WidthPlayfield; j++)
             {
                 GameObject tile = CreateTile(PlayfieldTexture, tileSpawnV);
                 // an die Bodenplatte wird ein Kind-Element angehaengt, das im Spiel die Kollision mit dem Spieler abfragen soll
@@ -264,7 +264,7 @@ public class PlayfieldInitialiser : MonoBehaviour
     {
         // Spielerfigur setzen
         Vector3 plaver_V = SPAWNER_V;
-        plaver_V.x += (_widthPlayfield / 2) * TileWidth;
+        plaver_V.x += (WidthPlayfield / 2) * TileWidth;
         plaver_V.y += (TilePrefab.transform.localScale.y / 2);
         plaver_V.z -= TileHeight;
 
@@ -296,7 +296,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         //platziere die Startplatten - andere Moeglichkeit mittels einer grossen ganzen Flaeche???
         for (int j = 0; j < 5; j++)
         {
-            for (int i = 0; i < _widthPlayfield; i++)
+            for (int i = 0; i < WidthPlayfield; i++)
             {
                 CreateTile(SpawnTexture, position_V);
                 position_V.x += TileWidth;
@@ -319,11 +319,11 @@ public class PlayfieldInitialiser : MonoBehaviour
         // Generiere Wand am Ende des Flurs
         GameObject rearwall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         rearwall.name = "rearwall";
-        float rearwallScaleX = TileWidth * _widthPlayfield + borderBase.x * 2;
+        float rearwallScaleX = TileWidth * WidthPlayfield + borderBase.x * 2;
         float rearwallScaleY = 10f;
         float rearwallScaleZ = 1f;
         rearwall.transform.localScale = new Vector3(rearwallScaleX, rearwallScaleY, rearwallScaleZ);
-        position_V.x = position_V.x + (TileWidth * _widthPlayfield) / 2 - (TilePrefab.transform.localScale.x / 2);
+        position_V.x = position_V.x + (TileWidth * WidthPlayfield) / 2 - (TilePrefab.transform.localScale.x / 2);
         position_V.y = position_V.y + TilePrefab.transform.localScale.y / 2;
         position_V.z = position_V.z - (TileHeight / 2) + (rearwall.transform.localScale.z / 2) - TileOffset / 2;
         rearwall.transform.position = new Vector3(position_V.x, position_V.y + (rearwallScaleY / 2), position_V.z);
@@ -347,7 +347,7 @@ public class PlayfieldInitialiser : MonoBehaviour
             BorderPrefab.name = "border_right" + nameCnt;
             BorderPrefab.transform.Find("frame").Find("painting").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
             //BorderPrefab.transform.Find("frame_right").Find("painting_right").GetComponent<Renderer>().material = PaintingsField[Random.Range(0, PaintingsField.Length)];
-            GameObject border_right = Instantiate(BorderPrefab, ambienceSpawn_V + new Vector3((TileWidth * _widthPlayfield) - TileOffset + borderBase.x, 0, 0), Quaternion.Euler(0, 180, 0));
+            GameObject border_right = Instantiate(BorderPrefab, ambienceSpawn_V + new Vector3((TileWidth * WidthPlayfield) - TileOffset + borderBase.x, 0, 0), Quaternion.Euler(0, 180, 0));
             border_right.transform.Find("frame").transform.localPosition = new Vector3(-1.39f, 3.74f, 4.0f);
 
             ambienceSpawn_V.z -= borderBase.z;
@@ -362,11 +362,11 @@ public class PlayfieldInitialiser : MonoBehaviour
     {
         int length = 2;
 
-        Instantiate(Showcase, new Vector3(position_V.x + (_widthPlayfield - 1) * TileWidth / 2, position_V.y + TilePrefab.transform.localScale.y / 2, position_V.z + TileHeight * (length - 1)), Quaternion.identity);
+        Instantiate(Showcase, new Vector3(position_V.x + (WidthPlayfield - 1) * TileWidth / 2, position_V.y + TilePrefab.transform.localScale.y / 2, position_V.z + TileHeight * (length - 1)), Quaternion.identity);
 
         for (int i = 0; i < length; i++)
         {
-            for (int j = 0; j < _widthPlayfield; j++)
+            for (int j = 0; j < WidthPlayfield; j++)
             {
                 CreateTile(ObjectiveTexture, position_V);
                 position_V.x += TileWidth;
@@ -397,15 +397,5 @@ public class PlayfieldInitialiser : MonoBehaviour
     private void CreateFinish_Mesh()
     {
 
-    }
-
-    public int getWidthField()
-    {
-        return _widthPlayfield;
-    }
-
-    public int getHeightField()
-    {
-        return _heightPlayfield;
     }
 }
