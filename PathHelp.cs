@@ -18,14 +18,13 @@ public class PathHelp : MonoBehaviour {
     private List<Vector2> _pathList = new List<Vector2>();              /* Verwaltung der Koordinaten der richtigen Bodenplatten
                                                                          * wird waehrend der Initialsierung befuellt
                                                                          */
-
-    private static float _offset = 1.1f;                                // der Versatz zwischen den Sprites
-    private float _waitTime = 1.0f;                                     // Alternative, um das Darstellen zu beschleunigen, bei Skip-Taste verringern
+    private const float OFFSET = 1.1f;                                // der Versatz zwischen den Sprites
+    private float _animTime = 1.0f;                                     // Alternative, um das Darstellen zu beschleunigen, bei Skip-Taste verringern
     //private float _smoothTime = 0.5f;                                  
 
     // Flags
-    bool _displayStarted = false;                                       
-    bool _displayFinished = false;
+    public bool _displayStarted = false;                                       
+    public bool _displayFinished = false;
     bool _isSkipped = false;
 
     private int _listCnt = 0;                                           // zaehlt ddie Indizes der Liste hoch; Membervariable da der Index beim Skippen benoetigt wird
@@ -36,20 +35,15 @@ public class PathHelp : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         _boardInfo = gameObject.GetComponent<PlayfieldInitialiser>();   // Breite und Hoehe des Spielfelds wird in GenerateSprites benoetigt
-
         _parentTransform = new GameObject("parentHolder");
+        //_parentTransform.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
         GenerateSprites(_boardInfo.getHeightField(), _boardInfo.getWidthField());
         coroutineDisplay = DisplayPath();                               // diese Coroutine kann spaeter auf Tastendruck gestoppt werden
-
-        Instantiate(PathDisplay, new Vector3(
-                                                _pathList[0].x * _offset + _parentTransform.transform.position.x, 
-                                                _pathList[0].y * _offset + _parentTransform.transform.position.y, 
-                                                -1  + _parentTransform.transform.position.z   // die "Leuchten" werden vor den Sprites (-1) erzeugt
-                                            ), Quaternion.identity, _parentTransform.transform);
     }
 	
 	// Update is called once per frame
 	void Update () {
+        //_offset *= _parentTransform.transform.localScale.x;
 
         // *** Routine spaeter bei Spielstart o.ae. automatisch starten, nicht auf Tastendruck ***
         if (Input.GetKeyDown(KeyCode.X) && !_displayStarted)
@@ -72,7 +66,6 @@ public class PathHelp : MonoBehaviour {
             //_listCnt--;
             //Instantiate(PathDisplay, new Vector3(_pathList[_listCnt].x * _offset, (_pathList[_listCnt].y * _offset) + _offset, -1), Quaternion.identity);
             //Destroy(PathDisplay);
-
             _displayFinished = true;
         }
 
@@ -81,7 +74,7 @@ public class PathHelp : MonoBehaviour {
             if (_destroyTimer >= 2.0f)
             {
                 // Kamera auf Spieler, in diesem Skript instanziierten Sachen zerstoeren (evtl.)
-                Debug.Log("Hilfe fertig");
+                //Debug.Log("Hilfe fertig");
             }
             _destroyTimer += Time.deltaTime;
         }
@@ -101,18 +94,20 @@ public class PathHelp : MonoBehaviour {
 
         for (int i = 0; i < height; i++)
         {
+            GameObject row = new GameObject("row" + i);
+            row.transform.SetParent(_parentTransform.transform);
             for (int j = 0; j < width; j++)
             {
                 GameObject sprite = new GameObject("pathSprite");
-                sprite.transform.SetParent(_parentTransform.transform);
+                sprite.transform.SetParent(row.transform);
                 sprite.transform.position = start_V;
                 SpriteRenderer sr = sprite.AddComponent<SpriteRenderer>();
                 sr.sprite = TileSprite;
 
-                start_V.x += _offset;
+                start_V.x += OFFSET;
             }
             start_V.x = 0;
-            start_V.y += _offset;
+            start_V.y += OFFSET;
         }
     }
 
@@ -124,15 +119,18 @@ public class PathHelp : MonoBehaviour {
     */
     private IEnumerator DisplayPath()
     {
-        while(_listCnt < _pathList.Count && !_isSkipped)
+        Instantiate(PathDisplay, DotPosition(), Quaternion.identity, _parentTransform.transform);
+        _listCnt++;
+        while (_listCnt < _pathList.Count && !_isSkipped)
         {
+            yield return new WaitForSeconds(_animTime);
             GameObject go = Instantiate(PathDisplay, DotPosition(), Quaternion.identity, _parentTransform.transform);
             _listCnt++;
-            yield return new WaitForSeconds(_waitTime);
         }
         //_listCnt--;
         //position = new Vector3(_pathList[_listCnt].x * _offset, _pathList[_listCnt].y * _offset + _offset, PathDisplay.transform.position.z);
         //Instantiate(PathDisplay, position, Quaternion.identity);
+        yield return new WaitForSeconds(_animTime);
         _displayFinished = true;
     }
 
@@ -145,8 +143,8 @@ public class PathHelp : MonoBehaviour {
     private Vector3 DotPosition()
     {
         return new Vector3(
-                            _pathList[_listCnt].x * _offset + _parentTransform.transform.position.x,
-                            _pathList[_listCnt].y * _offset + _parentTransform.transform.position.y,
+                            _pathList[_listCnt].x * OFFSET + _parentTransform.transform.position.x,
+                            _pathList[_listCnt].y * OFFSET + _parentTransform.transform.position.y,
                             -1 + _parentTransform.transform.position.z);
     }
 
@@ -160,5 +158,15 @@ public class PathHelp : MonoBehaviour {
     public void AddToPathList(float x, float y)
     {
         _pathList.Add(new Vector2(x, y));
+    }
+
+    public int GetCorrectTilesCount()
+    {
+        return _pathList.Count;
+    }
+
+    public float GetDisplayAnimTime()
+    {
+        return _animTime;
     }
 }
