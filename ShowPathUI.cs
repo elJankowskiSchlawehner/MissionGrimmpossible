@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class ShowPathUI : MonoBehaviour {
 
-    private ShowPathManager _helper;
+    private ShowPath _manager;
     private int _listCount;                     // Anzahl aller korrekten Platten
     private float _totalAnimTime;               // die Zeit, die benoetigt wird, bis PathHelp vollstaendig angezeigt wird
 
@@ -25,20 +25,20 @@ public class ShowPathUI : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        _helper = GameObject.Find("boardGameManager").GetComponent<ShowPathManager>();
-        _listCount = _helper.GetCorrectTilesCount();
-        _totalAnimTime = _listCount * _helper.GetDisplayAnimTime();
+        _manager = GameObject.Find("boardGameManager").GetComponent<ShowPath>();
+        _listCount = _manager.GetCorrectTilesCount();
+        _totalAnimTime = _listCount * _manager.GetDisplayAnimTime();
 
         LoadingText.text = "initialising ...";
         ProgressText.text = "";
         PercentageText.text = "0.00";
 
-        
+        Debug.Log("UNITS: " + PhoneImage.rectTransform.rect.width / 100);
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (_helper._displayStarted == true && (ProgressText.text.Length < TOTAL_PROGRESS_BARS))
+		if (_manager._displayStarted == true && (ProgressText.text.Length < TOTAL_PROGRESS_BARS))
         {
             // Rotierende Animation
             DisplayLoadingAnimation();
@@ -71,7 +71,7 @@ public class ShowPathUI : MonoBehaviour {
     */
     private IEnumerator LoadingAnimationRoutine ()
     {
-        while (!_helper._displayFinished)
+        while (!_manager._displayFinished)
         {
             switch (_loadingStep)
             {

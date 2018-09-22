@@ -162,7 +162,7 @@ public class PlayfieldObserver : MonoBehaviour {
      */
     public void CheckWin ()
     {
-        float endConditionY = transform.position.z + _boardInfo.TileHeight * _boardInfo.getHeightField();
+        float endConditionY = transform.position.z + _boardInfo.TileHeight * _boardInfo.HeightPlayfield;
 
         if (_player.transform.position.z >= endConditionY)
         {
