@@ -16,8 +16,12 @@ public class PlayfieldObserver : MonoBehaviour {
     private float _heightDifference = 0.3f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
     private float _tileSpeed = 0.5f;                                // die Zeit, die die Bewegung der Bodenplatten benoetigt
 
+    [HideInInspector]
     public bool GameStarted = false;
     private bool _gameFinished = false;
+
+    private float _restartDelay;
+    private float _restartTimer = 0.0f;
 
 	// Use this for initialization
 	void Start () {
@@ -30,16 +34,25 @@ public class PlayfieldObserver : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        if (GameStarted && !_gameFinished)
+        if (GameStarted)
         {
             GameTimer -= Time.deltaTime;
             
             if (GameTimer <= 0f)
             {
-                _player.CanMove = false;
                 GameTimer = 0f;
-                RestartGame();
+                RestartGame(2.0f);
             }
+        }
+
+        if (_gameFinished)
+        {
+            if (_restartTimer >= _restartDelay)
+            {
+                SceneManager.LoadScene(0);
+            }
+
+            _restartTimer += Time.deltaTime;
         }
     }
 
@@ -62,19 +75,19 @@ public class PlayfieldObserver : MonoBehaviour {
     }
 
     /* 
-     * ##### ResetPlayer #####
+     * ##### ResetBoard #####
      * Eine Routine (IEnumerator) ohne Uebergabeparameter.
      * Aufruf, wenn Spieler eine falsche Bodenplatte beruehrt.
      * Wartet auf das Beenden aller Routinen und setzt dann alle Tiles (indem sie eine Schleife durchlaeuft) zurueck.
      * Wartet anschliessend auf das Beenden der Routinen beim Zuruecksetzen in die Ursprungsposition.
      */
-    public IEnumerator ResetPlayer(Vector3 currentTilePos)
+    public IEnumerator ResetBoard(Vector3 currentTilePos)
     {
         // warten auf das Beenden aller laufenden Routinen des Typs MoveTileSmooth
         yield return WaitForOtherRoutines();
 
         // Animation der Fallen
-        yield return _trap.TriggerTrap_Tiles(currentTilePos);
+        yield return _trap.TriggerRandomTrap(currentTilePos, _player.transform.position);
 
         // Spieler wird zurueckgesetzt
         yield return ResetPlayer(1.0f);
@@ -90,7 +103,7 @@ public class PlayfieldObserver : MonoBehaviour {
             StartCoroutine(MoveSmooth(_tilesList[i], direction, _tileSpeed));   // Zuruecksetzen mittels der Routine MoveTileSmooth
         }
 
-        // warten bis wieder alle Bodenplatten verschoben wurden
+        // warten bis wieder alle Bodenplatten auf der richtigen Position liegen
         yield return WaitForOtherRoutines();
 
         // alle Referenzen der Bodenplatten aus der Liste entfernen
@@ -113,7 +126,7 @@ public class PlayfieldObserver : MonoBehaviour {
     {
         _activeCoroutines++;
         float elapsedTime = 0;                          // zaehlen der bereits vergangenen Zeit
-        Vector3 startingPos = go.transform.position;  // der Punkt, ab dem die Translation beginnt
+        Vector3 startingPos = go.transform.position;    // der Punkt, ab dem die Translation beginnt
         
         while (elapsedTime < smoothTime)
         {
@@ -132,9 +145,10 @@ public class PlayfieldObserver : MonoBehaviour {
     public void CheckWin ()
     {
         float endConditionY = transform.position.z + _boardInfo.TileHeight * _boardInfo.HeightPlayfield;
+
         if (_player.transform.position.z >= endConditionY)
         {
-            RestartGame();
+            RestartGame(2.0f);
         }
     }
 
@@ -142,10 +156,11 @@ public class PlayfieldObserver : MonoBehaviour {
      * ##### RestartGame #####
      * Neuinstanziierung des Levels
      */
-    public void RestartGame()
+    public void RestartGame(float delay)
     {
+        _restartDelay = delay;
         _gameFinished = true;
-        SceneManager.LoadScene(0);
+        _player.CanMove = false;
     }
 
     /* 
