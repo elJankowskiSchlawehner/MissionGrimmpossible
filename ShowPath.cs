@@ -76,8 +76,8 @@ public class ShowPath : MonoBehaviour {
             _displayStarted = true;
         }
 
-        
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !_displayFinished)
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !_displayFinished && _destroyTimer <= 0f)
         {
             // ueberspringen der Erstellung
             _isSkipped = true;
@@ -99,10 +99,8 @@ public class ShowPath : MonoBehaviour {
         {
             if (_destroyTimer >= 1.0f)
             {
-                if (_pathUI.FadedOut(Time.deltaTime))
-                {
-                    DisplayBoard();
-                }
+                StartCoroutine(DisplayBoard());
+                _displayFinished = false;
             }
             _destroyTimer += Time.deltaTime;
             
@@ -185,17 +183,30 @@ public class ShowPath : MonoBehaviour {
     * Zeigt nun das eigentliche Spiel an.
     * Die Kamera wird zurueckgesetzt und die Hilfe wird zerstoert
     */
-    private void DisplayBoard ()
+    private IEnumerator DisplayBoard()
     {
+        StartCoroutine(_pathUI.FadeOut());
+        while (_pathUI.isFading)
+        {
+            yield return null;
+        }
         Destroy(_displayField);
         _pathUI.transform.Find("Phone").gameObject.SetActive(false);
-        //Destroy(_pathUI.transform.Find("Phone").gameObject);
 
+        // Kamera umstellen
+        // TO DO
         _mainCamera.orthographic = false;
-        _mainCamera.transform.position = transform.position;
+        _mainCamera.transform.position = new Vector3(9.7f, 21.88f, -13.73f);
+        _mainCamera.transform.rotation = Quaternion.Euler(new Vector3(42.7f, 0f, 0f));
 
-        //Destroy(_pathUI);
-        //Destroy(this);
+        StartCoroutine(_pathUI.FadeIn());
+        while (_pathUI.isFading)
+        {
+            yield return null;
+        }
+        Destroy(_pathUI.transform.Find("Phone").gameObject);
+        Destroy(_pathUI);
+        Destroy(this);
     }
 
     /* 
