@@ -35,12 +35,12 @@ public class PlayfieldInitialiser : MonoBehaviour
     public Material ObjectiveTexture;
     public Material [] PaintingsField;                  // alle Gemaelde-Materialien
 
-    private PathHelp _pathHelp;
+    private ShowPathManager _pathHelp;
 
     // Use this for initialization
     void Awake()
     {
-        _pathHelp = gameObject.GetComponent<PathHelp>();
+        _pathHelp = gameObject.GetComponent<ShowPathManager>();
 
         // Fehlerfall abdecken, falls Groesse und Hoehe des Spielfelds kleiner als 1
         if (_widthPlayfield < 1)
