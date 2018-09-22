@@ -44,6 +44,7 @@ public class ShowPath : MonoBehaviour {
         _mainCamera.orthographic = true;                                // _displayField ist besser erkennbar
         _boardInfo = gameObject.GetComponent<PlayfieldInitialiser>();   // Breite und Hoehe des Spielfelds wird in GenerateSprites benoetigt
         _gameObserver = gameObject.GetComponent<PlayfieldObserver>();
+
         _pathUI = GameObject.Find("Canvas").GetComponent<ShowPathUI>();
         _displayField = new GameObject("displayField");
 
@@ -103,7 +104,6 @@ public class ShowPath : MonoBehaviour {
                 _displayFinished = false;
             }
             _destroyTimer += Time.deltaTime;
-            
         }
 	}
 
@@ -198,6 +198,10 @@ public class ShowPath : MonoBehaviour {
         _mainCamera.orthographic = false;
         _mainCamera.transform.position = new Vector3(9.7f, 21.88f, -13.73f);
         _mainCamera.transform.rotation = Quaternion.Euler(new Vector3(42.7f, 0f, 0f));
+
+        // Canvas Overlay umstellen
+        _pathUI.SetCanvasOverlay();
+        _pathUI.EnableTimer();
 
         StartCoroutine(_pathUI.FadeIn());
         while (_pathUI.isFading)
