@@ -23,6 +23,9 @@ public class ShowPathUI : MonoBehaviour {
     public Text PercentageText;                 // FORTSCHRITTSANZEIGE: PROZENT
     private float _currentAnimTime = 0f;        // die vergangene Zeit der Animation
 
+    private Texture2D _blackTex;
+    private float _alphaTex;
+
     // Use this for initialization
     void Start () {
         _manager = GameObject.Find("boardGameManager").GetComponent<ShowPath>();
@@ -33,7 +36,9 @@ public class ShowPathUI : MonoBehaviour {
         ProgressText.text = "";
         PercentageText.text = "0.00";
 
-        Debug.Log("UNITS: " + PhoneImage.rectTransform.rect.width / 100);
+        _blackTex = new Texture2D(1, 1);
+        _blackTex.SetPixel(0, 0, new Color(0, 0, 0, 0));
+        _blackTex.Apply();
 	}
 	
 	// Update is called once per frame
@@ -122,6 +127,16 @@ public class ShowPathUI : MonoBehaviour {
 
             _progressStep = 0f;
         }
+        
+        if (_manager._displayFinished)
+        {
+            ProgressText.text = "";
+            for (int i = 0; i < 25; i++)
+            {
+                ProgressText.text += "#";
+            }
+            
+        }
     }
 
     /* 
@@ -133,10 +148,42 @@ public class ShowPathUI : MonoBehaviour {
     {
         _currentAnimTime += Time.deltaTime;
 
-        if (_currentAnimTime >= _totalAnimTime)
+        if (_currentAnimTime >= _totalAnimTime || _manager._displayFinished)
         {
             _currentAnimTime = _totalAnimTime;
         }
+
         PercentageText.text = ((_currentAnimTime / _totalAnimTime) * 100).ToString("F2");
+    }
+
+    /* 
+     * ##### FadeOut #####
+     *
+     * Erhoeht den Alpha Wert eines Bildes des Canvas, um so einen
+     * Fade Out Effekt zu erzeugen. Wenn das Bild noch nicht alles ueberdeckt wird false zurueckgegeben
+     * Bei Alpha = 1 ist das Bild komplett schwarz und es wird true zurueckgegeben
+     */
+    public bool FadedOut(float deltaTime)
+    {
+        // Alternative: 
+        //Image fadeOut = transform.Find("FadeImage").GetComponent<Image>();
+        if (_alphaTex < 1)
+        {
+             _alphaTex += deltaTime * 0.4f;
+        }
+
+        if (_alphaTex >= 1)
+        {
+            _alphaTex = 1.0f;
+            return true;
+        }
+        _blackTex.SetPixel(0, 0, new Color(0, 0, 0, _alphaTex));
+        _blackTex.Apply();
+        return false;
+    }
+
+    private void OnGUI()
+    {
+        GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), _blackTex);
     }
 }
