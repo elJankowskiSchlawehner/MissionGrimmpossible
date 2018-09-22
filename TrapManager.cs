@@ -78,11 +78,11 @@ public class TrapManager : MonoBehaviour {
 
         List<Transform> shootingPos = new List<Transform>();
         RaycastHit hit;
-        if (Physics.Raycast(playerPos, Vector3.left, out hit, _boardInfo.WidthPlayfield * _boardInfo.TileWidth))
+        if (Physics.Raycast(playerPos, Vector3.left, out hit, _boardInfo.GetWidthPlayfield() * _boardInfo.TileWidth))
         {
             shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
-        if (Physics.Raycast(playerPos, Vector3.right, out hit, _boardInfo.WidthPlayfield * _boardInfo.TileWidth))
+        if (Physics.Raycast(playerPos, Vector3.right, out hit, _boardInfo.GetWidthPlayfield() * _boardInfo.TileWidth))
         {
             shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
