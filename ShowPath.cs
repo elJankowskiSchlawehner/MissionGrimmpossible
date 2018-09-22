@@ -12,6 +12,7 @@ public class ShowPath : MonoBehaviour {
     // Referenzen
     private Camera _mainCamera;
     private PlayfieldInitialiser _boardInfo;
+    private PlayfieldObserver _gameObserver;
     private ShowPathUI _pathUI;
     public Sprite TileSprite;
     public GameObject PathDot;
@@ -40,7 +41,9 @@ public class ShowPath : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         _mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        _mainCamera.orthographic = true;                                // _displayField ist besser erkennbar
         _boardInfo = gameObject.GetComponent<PlayfieldInitialiser>();   // Breite und Hoehe des Spielfelds wird in GenerateSprites benoetigt
+        _gameObserver = gameObject.GetComponent<PlayfieldObserver>();
         _pathUI = GameObject.Find("Canvas").GetComponent<ShowPathUI>();
         _displayField = new GameObject("displayField");
 
@@ -73,6 +76,7 @@ public class ShowPath : MonoBehaviour {
             _displayStarted = true;
         }
 
+        
         if (Input.GetKeyDown(KeyCode.LeftShift) && !_displayFinished)
         {
             // ueberspringen der Erstellung
@@ -89,15 +93,19 @@ public class ShowPath : MonoBehaviour {
             //Destroy(PathDisplay);
             _displayFinished = true;
         }
+        
 
         if (_displayFinished)
-        {         
-            if (_destroyTimer >= 2.0f)
+        {
+            if (_destroyTimer >= 1.0f)
             {
-                // Kamera auf Spieler, in diesem Skript instanziierten Sachen zerstoeren (evtl.)
-                //Debug.Log("Hilfe fertig");
+                if (_pathUI.FadedOut(Time.deltaTime))
+                {
+                    DisplayBoard();
+                }
             }
             _destroyTimer += Time.deltaTime;
+            
         }
 	}
 
@@ -169,6 +177,25 @@ public class ShowPath : MonoBehaviour {
                             (_pathList[_listCnt].x * _tileSize * _displayField.transform.localScale.x )+ _displayField.transform.position.x,
                             (_pathList[_listCnt].y * _tileSize * _displayField.transform.localScale.y )+ _displayField.transform.position.y,
                             -1 + _displayField.transform.position.z);
+    }
+
+    /* 
+    * ##### DisplayBoard #####
+    *
+    * Zeigt nun das eigentliche Spiel an.
+    * Die Kamera wird zurueckgesetzt und die Hilfe wird zerstoert
+    */
+    private void DisplayBoard ()
+    {
+        Destroy(_displayField);
+        _pathUI.transform.Find("Phone").gameObject.SetActive(false);
+        //Destroy(_pathUI.transform.Find("Phone").gameObject);
+
+        _mainCamera.orthographic = false;
+        _mainCamera.transform.position = transform.position;
+
+        //Destroy(_pathUI);
+        //Destroy(this);
     }
 
     /* 
