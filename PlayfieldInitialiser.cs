@@ -6,7 +6,7 @@ public class PlayfieldInitialiser : MonoBehaviour
 {
     // Konstanten
     //
-    private Vector3 SPAWNER_V;                          // Startpunkt der Generierung, darf nicht veraendert werden
+    private Vector3 SPAWNER_V = Vector3.zero;                          // Startpunkt der Generierung, darf nicht veraendert werden
     private const bool IS_CORRECT_TILE = true;
     private const bool IS_WRONG_TILE = false;
     
@@ -36,9 +36,6 @@ public class PlayfieldInitialiser : MonoBehaviour
     // Use this for initialization
     void Awake()
     {
-        transform.position = Vector3.zero;
-        SPAWNER_V = transform.position;                 // Initialiserung des Startpunkts
-
         // Fehlerfall abdecken, falls Groesse und Hoehe des Spielfelds kleiner als 1
         if (WidthPlayfield < 1)
         {

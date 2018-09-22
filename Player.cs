@@ -95,7 +95,7 @@ public class Player : MonoBehaviour
         {
             if (_resetTimer >= 1.0f)
             {
-                _boardObserver.RestartGame();
+                _boardObserver.RestartGame(0);
             }
             _resetTimer += Time.deltaTime;
         }
@@ -113,7 +113,7 @@ public class Player : MonoBehaviour
         {
             CanMove = false;
             // Falle Routine auch ausfuehren
-            StartCoroutine(_boardObserver.ResetPlayer(currentTilePos));
+            StartCoroutine(_boardObserver.ResetBoard(currentTilePos));
         }
         else if (tileCollider.tag == "correctTile")
         {
