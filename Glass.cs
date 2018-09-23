@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class Glass : MonoBehaviour {
 
+	// Referenzen
     public GameObject[] GlassPrefabs;
 
     private GameObject _player;

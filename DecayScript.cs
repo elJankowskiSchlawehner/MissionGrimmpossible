@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class DecayScript : MonoBehaviour
 {
+	//Referenzen
     private Transform _board;
 
     public float TickRate = 0.3f;       // Tick-Rate

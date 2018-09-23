@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ThirdPersonCamera : MonoBehaviour {
 
+	// Referenzen
     private GameObject _player;
     private PlayfieldObserver _gameObserver;
 
