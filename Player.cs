@@ -7,9 +7,10 @@ public class Player : MonoBehaviour
 {
     private Transform _boardManager;
     private PlayfieldInitialiser _boardInfo;
-    private PlayfieldObserver _boardObserver;
-
+    private PlayfieldObserver _gameObserver;
     private Rigidbody rb;
+
+    private Camera _mainCamera;
 
     [HideInInspector]
     public Vector3 ResetPoint_V;
@@ -24,10 +25,9 @@ public class Player : MonoBehaviour
     private bool _isMoving = false;
     private float _resetTimer = 0f;
 
-    //GameObject[] pauseScreen;
+    private Animator anim;
 
-    //fuer animationen
-    private Animator animator;
+    private bool isPaused = false;
 
 
     // Use this for initialization
@@ -35,20 +35,16 @@ public class Player : MonoBehaviour
     {
         _boardManager = GameObject.Find("boardGameManager").transform;
         _boardInfo = _boardManager.GetComponent<PlayfieldInitialiser>();
-        _boardObserver = _boardManager.GetComponent<PlayfieldObserver>();
+        _gameObserver = _boardManager.GetComponent<PlayfieldObserver>();
 
-        rb = GetComponent<Rigidbody>();
+        _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
 
-        //Animation
-        animator = GetComponent<Animator>();
+        anim = gameObject.GetComponent<Animator>();
+        rb = gameObject.GetComponent<Rigidbody>();
 
         //m_resetPointV wird in initPlayfield initialisiert
         _stepForward = _boardInfo.TileHeight;
         _stepSide = _boardInfo.TileWidth;
-
-        //Pause-Screen wird geladen und versteckt
-        /*pauseScreen = GameObject.FindGameObjectsWithTag("ShowPauseScreen");
-        hidePauseScreen();*/
 
         CanMove = false;
     }
@@ -59,90 +55,72 @@ public class Player : MonoBehaviour
         // mit velocity ueberpruefen ???????
         if (CanMove && rb.velocity.magnitude <= 0)
         {
-            if (Input.GetKeyDown(KeyCode.W) && !_isMoving)
+            if ((Input.GetKeyDown(KeyCode.W) ||Input.GetKeyDown(KeyCode.UpArrow)) && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
-                //transform.position += new Vector3(0, 0, _stepForward);
-                animator.SetTrigger("walk");
-                StartCoroutine(Move(_endPos_V, 1.0f));
+                _mainCamera.transform.parent = null;
+                StartCoroutine(Move(_endPos_V));
+                _mainCamera.transform.parent = transform;
             }
 
-            if (Input.GetKeyDown(KeyCode.UpArrow) && !_isMoving)
-            {
-                _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
-                //transform.position += new Vector3(0, 0, _stepForward);
-                StartCoroutine(Move(_endPos_V, 1.0f));
-            }
-
-            if (Input.GetKeyDown(KeyCode.A) && transform.position.x > _boardInfo.transform.position.x + 1 && !_isMoving)
+            if ((Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) && transform.position.x > _boardInfo.transform.position.x + 1 && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                //transform.position += new Vector3(-1 * _stepSide, 0, 0);
-                StartCoroutine(Move(_endPos_V, 1.0f));
+                _mainCamera.transform.parent = null;
+                StartCoroutine(Move(_endPos_V));
+                _mainCamera.transform.parent = transform;
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow) && transform.position.x > _boardInfo.transform.position.x + 1 && !_isMoving)
-            {
-                _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                //transform.position += new Vector3(-1 * _stepSide, 0, 0);
-                StartCoroutine(Move(_endPos_V, 1.0f));
-            }
-
-            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x - 1 + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1) && !_isMoving)
+            if ((Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) && transform.position.x < _boardInfo.transform.position.x - 1 + _boardInfo.TileWidth * (_gameObserver.GetPlayfieldWidth() - 1) && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                //transform.position += new Vector3(_stepSide, 0, 0);
-                StartCoroutine(Move(_endPos_V, 1.0f));
+                _mainCamera.transform.parent = null;
+                StartCoroutine(Move(_endPos_V));
+                _mainCamera.transform.parent = transform;
             }
 
-            if (Input.GetKeyDown(KeyCode.RightArrow) && transform.position.x < _boardInfo.transform.position.x - 1 + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1) && !_isMoving)
-            {
-                _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                //transform.position += new Vector3(_stepSide, 0, 0);
-                StartCoroutine(Move(_endPos_V, 1.0f));
-            }
+            
+        }
 
-            if (Input.GetKey(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.P) && !isPaused)
+        {
+            if (Time.timeScale == 1)
             {
-                if (_resetTimer >= 1.0f)
-                {
-                    _boardObserver.RestartGame(0);
-                }
-                _resetTimer += Time.deltaTime;
-            }
-            else
-            {
-                _resetTimer = 0f;
-            }
-
-            /*if (Input.GetKeyDown(KeyCode.P))
-            {
-                if (Time.timeScale == 1)
-                {
-                    Time.timeScale = 0;
-                    CanMove = false;
-                    showPauseScreen();
-                }
+                Time.timeScale = 0;
+                CanMove = false;
+                isPaused = true;
             }
         }
-        if (Input.GetKeyDown(KeyCode.P))
+
+        if (Input.GetKeyDown(KeyCode.P) && isPaused)
         {
             Time.timeScale = 1;
             CanMove = true;
-            hidePauseScreen();
-        }*/
+            isPaused = false;
+        }
+
+        if (Input.GetKey(KeyCode.R))
+        {
+            if (_resetTimer >= 1.0f)
+            {
+                _gameObserver.RestartGame(0);
+            }
+            _resetTimer += Time.deltaTime;
+        }
+        else
+        {
+            _resetTimer = 0f;
         }
     }
 
-        
     private void OnTriggerEnter(Collider tileCollider)
     {
-        Vector3 currentTilePos = _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
+        Vector3 currentTilePos = _gameObserver.SteppedOn(tileCollider.transform.parent.gameObject);
 
         if (tileCollider.tag == "wrongTile")
         {
             CanMove = false;
-            StartCoroutine(_boardObserver.ResetBoard(currentTilePos));
+            StartCoroutine(_gameObserver.ResetBoard(currentTilePos));
         }
         else if (tileCollider.tag == "correctTile")
         {
@@ -153,22 +131,23 @@ public class Player : MonoBehaviour
     // benutzt in PlayfieldObserver
     public void IsDead()
     {
-        //GetComponent<MeshRenderer>().enabled = false;
+
     }
 
     // benutzt in PlayfieldObserver
     public void IsAlive()
     {
-        //GetComponent<MeshRenderer>().enabled = true;
         transform.position = ResetPoint_V;
     }
 
-    private IEnumerator Move(Vector3 direction, float smoothTime)
+    private IEnumerator Move(Vector3 direction)
     {
+        float smoothTime = 0.25f;
         float elapsedTime = 0;
         Vector3 startingPos = transform.position;
 
         _isMoving = true;
+        anim.SetBool("IsWalking", true);
         while (elapsedTime < smoothTime)
         {
             transform.position = Vector3.Lerp(startingPos, direction, (elapsedTime / smoothTime));
@@ -176,7 +155,8 @@ public class Player : MonoBehaviour
             yield return null;
         }
         _isMoving = false;
-        _boardObserver.CheckWin();
+        anim.SetBool("IsWalking", false);
+        _gameObserver.CheckWin();
     }
 
     private IEnumerator WaitForMovement()
@@ -186,23 +166,4 @@ public class Player : MonoBehaviour
             yield return null;
         }
     }
-
-    //Pause-Screen anzeigen
-    /*public void showPauseScreen()
-    {
-        foreach (GameObject p in pauseScreen)
-        {
-            p.SetActive(true);
-        }
-    }
-
-    //Pause-Screen verbergen
-    public void hidePauseScreen()
-    {
-        foreach (GameObject p in pauseScreen)
-        {
-            p.SetActive(false);
-        }
-    }*/
-
 }
