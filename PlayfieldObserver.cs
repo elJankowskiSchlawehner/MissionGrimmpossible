@@ -43,6 +43,7 @@ public class PlayfieldObserver : MonoBehaviour {
 
         if (GameTimer <= 0f)
         {
+            _player.CanMove = false;
             GameTimer = 0f;
             RestartGame(2.0f);
         }
@@ -78,7 +79,7 @@ public class PlayfieldObserver : MonoBehaviour {
     /* 
      * ##### ResetBoard #####
      * Eine Routine (IEnumerator) ohne Uebergabeparameter.
-     * Aufruf, wenn Spieler eine falsche Bodenplatte beruehrt.
+     * Aufruf, wenn Spieler eine falsche Bodenplatte beruehrt. Wird auch in Player.cs aufgerufen
      * Wartet auf das Beenden aller Routinen und setzt dann alle Tiles (indem sie eine Schleife durchlaeuft) zurueck.
      * Wartet anschliessend auf das Beenden der Routinen beim Zuruecksetzen in die Ursprungsposition.
      */
@@ -140,11 +141,9 @@ public class PlayfieldObserver : MonoBehaviour {
 
     public IEnumerator RotateSmooth(GameObject go, float x, float y, float z, float smoothTime)
     {
-        //_activeCoroutines++;
         float elapsedTime = 0;
         Quaternion targetRot = Quaternion.identity;
         targetRot.eulerAngles = new Vector3(x, y, z);
-        Debug.Log(targetRot.eulerAngles);
 
         while (elapsedTime < smoothTime)
         {
@@ -152,7 +151,6 @@ public class PlayfieldObserver : MonoBehaviour {
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        //_activeCoroutines--;
     }
 
     /* 
@@ -201,8 +199,8 @@ public class PlayfieldObserver : MonoBehaviour {
     {
         // Spieler zuruecksetzen
         yield return new WaitForSeconds(resetTime / 2);
-        _player.isDead();
+        _player.IsDead();
         yield return new WaitForSeconds(resetTime / 2);
-        _player.isAlive();
+        _player.IsAlive();
     }
 }

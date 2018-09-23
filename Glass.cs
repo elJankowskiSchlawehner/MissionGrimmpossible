@@ -9,16 +9,18 @@ public class Glass : MonoBehaviour {
     public GameObject[] GlassPrefabs;
 
     private GameObject _player;
+    private PlayfieldObserver _gameObserver;
 
 	// Use this for initialization
 	void Start () {
         _player = GameObject.Find("Player");
+        _gameObserver = GameObject.Find("boardGameManager").GetComponent<PlayfieldObserver>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
         // Spielstart bei Space
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (_gameObserver.GameStarted)
         {
             // Glass instanzieren
             GameObject glassBroken = Instantiate(GlassPrefabs[Random.Range(0, GlassPrefabs.Length)], gameObject.transform.position, gameObject.transform.rotation);

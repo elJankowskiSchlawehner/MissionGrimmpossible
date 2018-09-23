@@ -41,4 +41,9 @@ public class TimerManager : MonoBehaviour {
         string seconds = (_boardObserver.GameTimer % 60).ToString("F2");
         return minutes + ":" + seconds;
     }
+
+    private void TimeLoss()
+    {
+
+    }
 }
