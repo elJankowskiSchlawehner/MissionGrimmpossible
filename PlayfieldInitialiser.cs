@@ -66,7 +66,7 @@ public class PlayfieldInitialiser : MonoBehaviour
         int pathDirection = 0;                          // speichert die moeglichen Richtungen des Pfades, initial = 0 (vorwaerts)
         int pathLength;                                 // speichert die Laenge des Pfads in die gewuerfelte Richtung
         int pathEnd;                                    // Abbruchbedingung for-Schleife, ansonsten wird currentPosition in der Bedingung ueberschrieben
-        int maxForwardLength = (_heightPlayfield / 3 + 1);   // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
+        int maxForwardLength = (_heightPlayfield / 5 + 2);   // Laenge des Pfads kann sich je nach Einstellung aendern. DEFAULT: (height - currentPosY)
 
         TileOffset = Mathf.Abs(TileOffset);             
         TileWidth = TilePrefab.transform.localScale.x + TileOffset;   // speichert die Breite des Tile Prefabs
@@ -390,7 +390,7 @@ public class PlayfieldInitialiser : MonoBehaviour
      */
     private void CreateSpawn_Mesh()
     {
-        Vector3 spawn_V = SPAWNER_V;
+        //Vector3 spawn_V = SPAWNER_V;
         //platziere die Startplatten - andere Moeglichkeit mittels einer grossen ganzen Flaeche???
     }
 

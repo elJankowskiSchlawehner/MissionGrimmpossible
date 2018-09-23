@@ -4,31 +4,31 @@ using UnityEngine;
 
 /* 
  * Uebertraegt die Level-Groesse ueber die Szenen hinweg
- * Wird unter anderem fuer das Menue benoetigt
+ * Wird unter anderem fuer das Menu benoetigt
  */
 public class LevelSettings : MonoBehaviour {
 
     //default Werte
-    public static int LevelWidth = 5;
-    public static int LevelHeight = 5;
+    private static int _levelWidth = 7;
+    private static int _levelHeight = 10;
 
     public static int GetLevelWidth()
     {
-        return LevelWidth;
+        return _levelWidth;
     }
 
     public static int GetLevelHeight()
     {
-        return LevelHeight;
+        return _levelHeight;
     }
 
     public static void SetLevelWidth(int newLevelWidth)
     {
-        LevelWidth = newLevelWidth;
+        _levelWidth = newLevelWidth;
     }
 
     public static void SetLevelHeight (int newLevelHeight)
     {
-        LevelHeight = newLevelHeight;
+        _levelHeight = newLevelHeight;
     }
 }

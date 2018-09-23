@@ -9,34 +9,33 @@ public class Player : MonoBehaviour
     private PlayfieldInitialiser _boardInfo;
     private PlayfieldObserver _boardObserver;
 
+    private Rigidbody rb;
+
     [HideInInspector]
     public Vector3 ResetPoint_V;
 
     private float _stepForward;
     private float _stepSide;
-    public float Speed = 0.5f;
-    private float _currentLerpTime = 0f;
-    private Vector3 _startPos_V;
+
     private Vector3 _endPos_V;
 
     [HideInInspector]
     public bool CanMove = false;
+    private bool _isMoving = false;
     private float _resetTimer = 0f;
 
     // Use this for initialization
     void Start()
     {
-        Debug.Log("zum Spielen: Space druecken!");
-        Debug.Log("R gedrueckt halten: Zuruecksetzen");
-
         _boardManager = GameObject.Find("boardGameManager").transform;
         _boardInfo = _boardManager.GetComponent<PlayfieldInitialiser>();
         _boardObserver = _boardManager.GetComponent<PlayfieldObserver>();
 
+        rb = GetComponent<Rigidbody>();
+
         //m_resetPointV wird in initPlayfield initialisiert
         _stepForward = _boardInfo.TileHeight;
         _stepSide = _boardInfo.TileWidth;
-        _startPos_V = ResetPoint_V;
 
         CanMove = false;
     }
@@ -44,51 +43,29 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (_boardObserver.GameTimer <= 0f)
+        // mit velocity ueberpruefen ???????
+        if (CanMove && rb.velocity.magnitude <= 0)
         {
-            CanMove = false;
-        }
-
-        if (CanMove)
-        {
-            _boardObserver.GameStarted = true;
-            if (Input.GetKeyDown(KeyCode.W))
+            if (Input.GetKeyDown(KeyCode.W) && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
-                transform.position += new Vector3(0, 0, _stepForward);
-                _boardObserver.CheckWin();
+                //transform.position += new Vector3(0, 0, _stepForward);
+                StartCoroutine(Move(_endPos_V, 0.25f));
             }
 
-            if (Input.GetKeyDown(KeyCode.A) && transform.position.x > _boardInfo.transform.position.x)
+            if (Input.GetKeyDown(KeyCode.A) && transform.position.x > _boardInfo.transform.position.x + 1 && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(-1 * _stepSide, 0, 0);
+                //transform.position += new Vector3(-1 * _stepSide, 0, 0);
+                StartCoroutine(Move(_endPos_V, 0.25f));
             }
 
-            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1))
+            if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x - 1 + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1) && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
-                transform.position += new Vector3(_stepSide, 0, 0);
+                //transform.position += new Vector3(_stepSide, 0, 0);
+                StartCoroutine(Move(_endPos_V, 0.25f));
             }
-
-            /*if (keyHit)
-            {
-                isStanding = false;
-                _currentLerpTime += Time.deltaTime;
-                if (_currentLerpTime >= m_speed)
-                {
-                    _currentLerpTime = m_speed;
-                }
-
-                float Perc = _currentLerpTime / m_speed;
-                transform.localPosition = Vector3.Lerp(_startPos, _endPos, Perc);
-                if (_currentLerpTime >= m_speed)
-                {
-                    keyHit = false;
-                    _currentLerpTime = 0f;
-                    isStanding = true;
-                }
-            }*/
         }
 
         if (Input.GetKey(KeyCode.R))
@@ -112,7 +89,6 @@ public class Player : MonoBehaviour
         if (tileCollider.tag == "wrongTile")
         {
             CanMove = false;
-            // Falle Routine auch ausfuehren
             StartCoroutine(_boardObserver.ResetBoard(currentTilePos));
         }
         else if (tileCollider.tag == "correctTile")
@@ -121,16 +97,40 @@ public class Player : MonoBehaviour
         }
     }
 
-    // TO DO
     // benutzt in PlayfieldObserver
-    public void isDead()
+    public void IsDead()
     {
         GetComponent<MeshRenderer>().enabled = false;
     }
 
-    public void isAlive()
+    // benutzt in PlayfieldObserver
+    public void IsAlive()
     {
         GetComponent<MeshRenderer>().enabled = true;
         transform.position = ResetPoint_V;
+    }
+
+    private IEnumerator Move(Vector3 direction, float smoothTime)
+    {
+        float elapsedTime = 0;
+        Vector3 startingPos = transform.position;
+
+        _isMoving = true;
+        while (elapsedTime < smoothTime)
+        {
+            transform.position = Vector3.Lerp(startingPos, direction, (elapsedTime / smoothTime));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        _isMoving = false;
+        _boardObserver.CheckWin();
+    }
+
+    private IEnumerator WaitForMovement()
+    {
+        while (_isMoving)
+        {
+            yield return null;
+        }
     }
 }

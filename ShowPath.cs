@@ -50,7 +50,8 @@ public class ShowPath : MonoBehaviour {
 
         _tileSize = TileSprite.bounds.size.x + OFFSET;
         _displayFieldWidth = (_boardInfo.GetWidthPlayfield() * _tileSize) - OFFSET;  // Breite der Anzeige - letztes OFFSET nach dem letzten Tile wird abgezogen
-        float displayScale = (_pathUI.PhoneImage.rectTransform.rect.width / 100 - 0.3f) / _displayFieldWidth; // Pixel des Smartphones in Units umrechnen
+        //float displayScale = (_pathUI.PhoneImage.rectTransform.rect.width / 100 - 0.3f) / _displayFieldWidth; // Pixel des Smartphones in Units umrechnen
+        float displayScale = (_pathUI.PhoneImage.transform.Find("BackgroundImage").GetComponent<RectTransform>().rect.width / 100 - 0.5f) / _displayFieldWidth;
         _displayField.transform.localScale = new Vector3(displayScale, displayScale, 1f);
 
         GenerateSprites(_boardInfo.GetHeightPlayfield(), _boardInfo.GetWidthPlayfield());
@@ -63,21 +64,12 @@ public class ShowPath : MonoBehaviour {
                                         1
                                     );
         _displayField.transform.position = pos;
+
+        StartCoroutine(StartDisplay());
     }
 	
 	// Update is called once per frame
 	void Update () {
-        //_offset *= _parentTransform.transform.localScale.x;
-
-        // *** Routine spaeter bei Spielstart o.ae. automatisch starten, nicht auf Tastendruck ***
-        if (Input.GetKeyDown(KeyCode.X) && !_displayStarted)
-        {
-            PathDot.GetComponent<ParticleSystem>().startSize = _displayField.transform.localScale.x;
-            StartCoroutine(coroutineDisplay);
-            _displayStarted = true;
-        }
-
-
         if (Input.GetKeyDown(KeyCode.LeftShift) && !_displayFinished && _destroyTimer <= 0f)
         {
             // ueberspringen der Erstellung
@@ -106,6 +98,14 @@ public class ShowPath : MonoBehaviour {
             _destroyTimer += Time.deltaTime;
         }
 	}
+
+    private IEnumerator StartDisplay()
+    {
+        yield return new WaitForSeconds(1.0f);
+        PathDot.GetComponent<ParticleSystem>().startSize = _displayField.transform.localScale.x;
+        StartCoroutine(coroutineDisplay);
+        _displayStarted = true;
+    }
 
     /* 
     * ##### GenerateSprites #####
@@ -153,7 +153,7 @@ public class ShowPath : MonoBehaviour {
         while (_listCnt < _pathList.Count && !_isSkipped)
         {
             yield return new WaitForSeconds(_animTime);
-            GameObject go = Instantiate(PathDot, DotPosition(), Quaternion.identity, _displayField.transform);
+            Instantiate(PathDot, DotPosition(), Quaternion.identity, _displayField.transform);
             _listCnt++;
         }
         //_listCnt--;
@@ -208,8 +208,10 @@ public class ShowPath : MonoBehaviour {
         {
             yield return null;
         }
+
         Destroy(_pathUI.transform.Find("Phone").gameObject);
         Destroy(_pathUI);
+        _gameObserver.GameStarted = true;
         Destroy(this);
     }
 
