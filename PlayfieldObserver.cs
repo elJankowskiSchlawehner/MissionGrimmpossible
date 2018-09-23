@@ -10,10 +10,11 @@ public class PlayfieldObserver : MonoBehaviour {
     private Player _player;                                         // Referenz auf das Skript des Spielers
     private PlayfieldInitialiser _boardInfo;                        // Referenz auf die Eigenschaften des Spielfelds
     private TrapManager _trap;
+    private ShowPath _pathInfo;
 
     private int _activeCoroutines = 0;                              // zaehlt alle aktiven Routinen in movingSmooth, wichtig fuer ResetPlayer
 
-    public float GameTimer = (int) 30.0f;
+    public float GameTimer;
 
     private float _heightDifference = 0.3f;                         // gibt an mit welchem Hoehen-Unterschied sich die Bodenplatten bei Betreten / Fehltritt bewegen sollen
     private float _tileSpeed = 0.5f;                                // die Zeit, die die Bewegung der Bodenplatten benoetigt
@@ -25,12 +26,18 @@ public class PlayfieldObserver : MonoBehaviour {
     private float _restartDelay;
     private float _restartTimer = 0.0f;
 
-	// Use this for initialization
-	void Start () {
-        _player = GameObject.Find("Player").GetComponent<Player>();
+    private void Awake()
+    {
         _boardInfo = GetComponent<PlayfieldInitialiser>();
-        _trap = GetComponent<TrapManager>();
+    }
 
+    // Use this for initialization
+    void Start () {
+        _player = GameObject.Find("Player").GetComponent<Player>();
+        _trap = GetComponent<TrapManager>();
+        _pathInfo = GetComponent<ShowPath>();
+
+        GameTimer = (int)(_pathInfo.GetCorrectTilesCount() * 3.5f);
         GameTimer -= 0.01f;
     }
 	
@@ -45,14 +52,15 @@ public class PlayfieldObserver : MonoBehaviour {
         {
             _player.CanMove = false;
             GameTimer = 0f;
-            RestartGame(2.0f);
+            //RestartGame(2.0f);
+            SceneManager.LoadScene(2);
         }
 
         if (_gameFinished)
         {
             if (_restartTimer >= _restartDelay)
             {
-                SceneManager.LoadScene(0);
+                SceneManager.LoadScene(1);
             }
             _restartTimer += Time.deltaTime;
         }
@@ -71,6 +79,7 @@ public class PlayfieldObserver : MonoBehaviour {
         if (!_tilesList.Contains(tile))
         {
             _tilesList.Add(tile);
+            tile.GetComponent<AudioSource>().Play(0);
             StartCoroutine(MoveSmooth(tile, direction, _tileSpeed));
         }
         return direction;
@@ -89,7 +98,7 @@ public class PlayfieldObserver : MonoBehaviour {
         yield return WaitForOtherRoutines();
 
         // Animation der Fallen
-        yield return _trap.TriggerRandomTrap(currentTilePos, _player.transform.position);
+        yield return _trap.TriggerRandomTrap(currentTilePos, _player.transform.Find("RaycastPos").position);
 
         // Spieler wird zurueckgesetzt
         yield return ResetPlayer(1.0f);
@@ -102,8 +111,10 @@ public class PlayfieldObserver : MonoBehaviour {
                                             _tilesList[i].transform.position.y + _heightDifference, 
                                             _tilesList[i].transform.position.z
                                             );
+            
             StartCoroutine(MoveSmooth(_tilesList[i], direction, _tileSpeed));   // Zuruecksetzen mittels der Routine MoveTileSmooth
         }
+        _tilesList[0].GetComponent<AudioSource>().Play();
 
         // warten bis wieder alle Bodenplatten auf der richtigen Position liegen
         yield return WaitForOtherRoutines();
@@ -160,11 +171,13 @@ public class PlayfieldObserver : MonoBehaviour {
      */
     public void CheckWin ()
     {
-        float endConditionY = transform.position.z + _boardInfo.TileHeight * _boardInfo.GetHeightPlayfield();
+        float endConditionY = transform.position.z + _boardInfo.TileHeight * GetPlayfieldHeight() - 1;
 
         if (_player.transform.position.z >= endConditionY)
         {
-            RestartGame(2.0f);
+            //RestartGame(2.0f);
+            Debug.Log("fertig");
+            SceneManager.LoadScene(3);
         }
     }
 
@@ -178,6 +191,7 @@ public class PlayfieldObserver : MonoBehaviour {
         _gameFinished = true;
         _player.CanMove = false;
     }
+    
 
     /* 
      * ##### WaitForOtherRoutines #####
@@ -202,5 +216,15 @@ public class PlayfieldObserver : MonoBehaviour {
         _player.IsDead();
         yield return new WaitForSeconds(resetTime / 2);
         _player.IsAlive();
+    }
+
+    public int GetPlayfieldWidth()
+    {
+        return _boardInfo.WidthPlayfield;
+    }
+
+    public int GetPlayfieldHeight()
+    {
+        return _boardInfo.HeightPlayfield;
     }
 }

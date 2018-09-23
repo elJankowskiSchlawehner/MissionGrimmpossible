@@ -11,11 +11,12 @@ public class ShowPath : MonoBehaviour {
 
     // Referenzen
     private Camera _mainCamera;
-    private PlayfieldInitialiser _boardInfo;
     private PlayfieldObserver _gameObserver;
     private ShowPathUI _pathUI;
     public Sprite TileSprite;
     public GameObject PathDot;
+    private AudioSource Audio;
+    public AudioClip AudioComplete;
 
     private GameObject _displayField;
     private float _displayFieldWidth;
@@ -23,9 +24,7 @@ public class ShowPath : MonoBehaviour {
                                                                          * wird waehrend der Initialsierung befuellt
                                                                          */
     private const float OFFSET = 0.1f;                                  // der Versatz zwischen den Sprites
-    private float _tileSize;                                            // Groesse der Tiles + OFFSET
-
-    //private float _smoothTime = 0.5f;                                  
+    private float _tileSize;                                            // Groesse der Tiles + OFFSET                               
 
     // Flags
     [HideInInspector]
@@ -41,21 +40,21 @@ public class ShowPath : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         _mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        _mainCamera.GetComponent<ThirdPersonCamera>().enabled = false;
         _mainCamera.orthographic = true;                                // _displayField ist besser erkennbar
-        _boardInfo = gameObject.GetComponent<PlayfieldInitialiser>();   // Breite und Hoehe des Spielfelds wird in GenerateSprites benoetigt
         _gameObserver = gameObject.GetComponent<PlayfieldObserver>();
 
         _pathUI = GameObject.Find("Canvas").GetComponent<ShowPathUI>();
         _displayField = new GameObject("displayField");
 
         _tileSize = TileSprite.bounds.size.x + OFFSET;
-        _displayFieldWidth = (_boardInfo.GetWidthPlayfield() * _tileSize) - OFFSET;  // Breite der Anzeige - letztes OFFSET nach dem letzten Tile wird abgezogen
+        _displayFieldWidth = (_gameObserver.GetPlayfieldWidth() * _tileSize) - OFFSET;  // Breite der Anzeige - letztes OFFSET nach dem letzten Tile wird abgezogen
         //float displayScale = (_pathUI.PhoneImage.rectTransform.rect.width / 100 - 0.3f) / _displayFieldWidth; // Pixel des Smartphones in Units umrechnen
         float displayScale = (_pathUI.PhoneImage.transform.Find("BackgroundImage").GetComponent<RectTransform>().rect.width / 100 - 0.5f) / _displayFieldWidth;
         _displayField.transform.localScale = new Vector3(displayScale, displayScale, 1f);
 
-        GenerateSprites(_boardInfo.GetHeightPlayfield(), _boardInfo.GetWidthPlayfield());
-        coroutineDisplay = DisplayPath();                               // diese Coroutine kann spaeter auf Tastendruck gestoppt werden
+        GenerateSprites(_gameObserver.GetPlayfieldHeight(), _gameObserver.GetPlayfieldWidth());
+        coroutineDisplay = DisplayPath();
 
         // zur Kamera verschieben
         Vector3 pos = new Vector3   (
@@ -65,6 +64,13 @@ public class ShowPath : MonoBehaviour {
                                     );
         _displayField.transform.position = pos;
 
+        // Audio fuer das Ende einstellen
+        Audio = _displayField.AddComponent<AudioSource>();
+        Audio.clip = AudioComplete;
+        Audio.playOnAwake = false;
+        Audio.volume = 0.5f;
+
+        // Pfad anzeigen lassen
         StartCoroutine(StartDisplay());
     }
 	
@@ -156,11 +162,9 @@ public class ShowPath : MonoBehaviour {
             Instantiate(PathDot, DotPosition(), Quaternion.identity, _displayField.transform);
             _listCnt++;
         }
-        //_listCnt--;
-        //position = new Vector3(_pathList[_listCnt].x * _offset, _pathList[_listCnt].y * _offset + _offset, PathDisplay.transform.position.z);
-        //Instantiate(PathDisplay, position, Quaternion.identity);
         yield return new WaitForSeconds(_animTime);
         _displayFinished = true;
+        Audio.Play(0);
     }
 
     /* 
@@ -192,12 +196,9 @@ public class ShowPath : MonoBehaviour {
         }
         Destroy(_displayField);
         _pathUI.transform.Find("Phone").gameObject.SetActive(false);
+        Destroy(GameObject.Find("PhoneBackground"));
 
-        // Kamera umstellen
-        // TO DO
-        _mainCamera.orthographic = false;
-        _mainCamera.transform.position = new Vector3(9.7f, 21.88f, -13.73f);
-        _mainCamera.transform.rotation = Quaternion.Euler(new Vector3(42.7f, 0f, 0f));
+        _mainCamera.GetComponent<ThirdPersonCamera>().enabled = true;
 
         // Canvas Overlay umstellen
         _pathUI.SetCanvasOverlay();
@@ -209,6 +210,7 @@ public class ShowPath : MonoBehaviour {
             yield return null;
         }
 
+        //Destroy(_pathUI.transform.Find("PhoneBackground"));
         Destroy(_pathUI.transform.Find("Phone").gameObject);
         Destroy(_pathUI);
         _gameObserver.GameStarted = true;
