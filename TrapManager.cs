@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TrapManager : MonoBehaviour {
 
-    private PlayfieldObserver _observer;
+    private PlayfieldObserver _gameObserver;
     private PlayfieldInitialiser _boardInfo;
 
     public GameObject[] TrapsPrefab_Tiles;                          // Prefabs, die bei Spielertot unter den Tiles gespawned werden --> Aufwaertsbewegung
@@ -19,7 +19,7 @@ public class TrapManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        _observer = GetComponent<PlayfieldObserver>();
+        _gameObserver = GetComponent<PlayfieldObserver>();
         _boardInfo = GetComponent<PlayfieldInitialiser>();
 
         //_idleTime = _trapAnimationTime / 2;
@@ -56,13 +56,13 @@ public class TrapManager : MonoBehaviour {
         GameObject trap = Instantiate(TrapsPrefab_Tiles[Random.Range(0, TrapsPrefab_Tiles.Length)], currentTilePos - offset, Quaternion.identity);
         float trapScale = trap.transform.Find("base").localScale.y;
         // Aufwaertsbewegung, Falle erscheint
-        StartCoroutine(_observer.MoveSmooth(trap, new Vector3(currentTilePos.x, currentTilePos.y + _boardInfo.TilePrefab.transform.localScale.y / 2, currentTilePos.z), _moveTime));
-        yield return _observer.WaitForOtherRoutines();
+        StartCoroutine(_gameObserver.MoveSmooth(trap, new Vector3(currentTilePos.x, currentTilePos.y + _boardInfo.TilePrefab.transform.localScale.y / 2, currentTilePos.z), _moveTime));
+        yield return _gameObserver.WaitForOtherRoutines();
         // Falle bleibt kurz stehen
         yield return new WaitForSeconds(_idleTime);
         // Abwaertsbewegung
-        StartCoroutine(_observer.MoveSmooth(trap, currentTilePos - offset, _moveTime));
-        yield return _observer.WaitForOtherRoutines();
+        StartCoroutine(_gameObserver.MoveSmooth(trap, currentTilePos - offset, _moveTime));
+        yield return _gameObserver.WaitForOtherRoutines();
         // Falle wird abschliessend dereferenziert
         Destroy(trap);
 
@@ -72,17 +72,17 @@ public class TrapManager : MonoBehaviour {
     private IEnumerator TriggerTrap_Turret(Vector3 playerPos)
     {
         _animationFinished = false;
-
         _idleTime = _trapAnimationTime / 2;
         _moveTime = (_trapAnimationTime - _idleTime) / 3;
 
         List<Transform> shootingPos = new List<Transform>();
         RaycastHit hit;
-        if (Physics.Raycast(playerPos, Vector3.left, out hit, _boardInfo.GetWidthPlayfield() * _boardInfo.TileWidth))
+
+        if (Physics.Raycast(playerPos, Vector3.left, out hit, _gameObserver.GetPlayfieldWidth() * _boardInfo.TileWidth))
         {
             shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
-        if (Physics.Raycast(playerPos, Vector3.right, out hit, _boardInfo.GetWidthPlayfield() * _boardInfo.TileWidth))
+        if (Physics.Raycast(playerPos, Vector3.right, out hit, _gameObserver.GetPlayfieldWidth() * _boardInfo.TileWidth))
         {
             shootingPos.Add(hit.collider.transform.parent.Find("turret").Find("shootingPos").transform);
         }
@@ -105,30 +105,19 @@ public class TrapManager : MonoBehaviour {
         hypotenuse_V = playerPos - turret.transform.position;
         float angleX = Vector3.Angle(adjacent_V, hypotenuse_V);
 
-        //Debug.Log(angleX + " " + angleY + " " + 0);
-
-        // working code
-        /*
-        turret.transform.Rotate(0, turret.transform.localRotation.y + angleY, 0);
-        turret.transform.Rotate(turret.transform.localRotation.x + angleX, 0, 0);
-        Debug.Log(turret.transform.localRotation.eulerAngles);
-        yield return new WaitForSeconds(_idleTime);
-        turret.transform.localRotation = Quaternion.Euler(0, 90, 0);
-        */
-
         // eigentliche Bewegung der Falle
-        yield return _observer.RotateSmooth(turret, turret.transform.localRotation.eulerAngles.x + angleX, turret.transform.localRotation.eulerAngles.y + angleY, 0, _moveTime);
+        yield return _gameObserver.RotateSmooth(turret, turret.transform.localRotation.eulerAngles.x + angleX, turret.transform.localRotation.eulerAngles.y + angleY, 0, _moveTime);
         
         // Turret Animation
         GameObject trap = Instantiate(Particles[Random.Range(0, Particles.Length)], shootingPos[spawnIndx].position, Quaternion.identity);
-        StartCoroutine(_observer.MoveSmooth(trap, playerPos, _moveTime));
-        yield return _observer.WaitForOtherRoutines();
+        StartCoroutine(_gameObserver.MoveSmooth(trap, playerPos, _moveTime));
+        yield return _gameObserver.WaitForOtherRoutines();
 
         yield return new WaitForSeconds(_idleTime);
 
         // auf Ursprungsposition zuruecksetzen
-        yield return _observer.RotateSmooth(turret, 0, 90, 0, _moveTime);
-        yield return _observer.WaitForOtherRoutines();
+        yield return _gameObserver.RotateSmooth(turret, 0, 90, 0, _moveTime);
+        yield return _gameObserver.WaitForOtherRoutines();
         
         Destroy(trap, 2.0f);
 
