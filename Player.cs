@@ -24,6 +24,12 @@ public class Player : MonoBehaviour
     private bool _isMoving = false;
     private float _resetTimer = 0f;
 
+    //GameObject[] pauseScreen;
+
+    //fuer animationen
+    private Animator animator;
+
+
     // Use this for initialization
     void Start()
     {
@@ -33,9 +39,16 @@ public class Player : MonoBehaviour
 
         rb = GetComponent<Rigidbody>();
 
+        //Animation
+        animator = GetComponent<Animator>();
+
         //m_resetPointV wird in initPlayfield initialisiert
         _stepForward = _boardInfo.TileHeight;
         _stepSide = _boardInfo.TileWidth;
+
+        //Pause-Screen wird geladen und versteckt
+        /*pauseScreen = GameObject.FindGameObjectsWithTag("ShowPauseScreen");
+        hidePauseScreen();*/
 
         CanMove = false;
     }
@@ -50,38 +63,78 @@ public class Player : MonoBehaviour
             {
                 _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
                 //transform.position += new Vector3(0, 0, _stepForward);
-                StartCoroutine(Move(_endPos_V, 0.25f));
+                animator.SetTrigger("walk");
+                StartCoroutine(Move(_endPos_V, 1.0f));
+            }
+
+            if (Input.GetKeyDown(KeyCode.UpArrow) && !_isMoving)
+            {
+                _endPos_V = new Vector3(transform.position.x, transform.position.y, transform.position.z + _stepForward);
+                //transform.position += new Vector3(0, 0, _stepForward);
+                StartCoroutine(Move(_endPos_V, 1.0f));
             }
 
             if (Input.GetKeyDown(KeyCode.A) && transform.position.x > _boardInfo.transform.position.x + 1 && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
                 //transform.position += new Vector3(-1 * _stepSide, 0, 0);
-                StartCoroutine(Move(_endPos_V, 0.25f));
+                StartCoroutine(Move(_endPos_V, 1.0f));
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftArrow) && transform.position.x > _boardInfo.transform.position.x + 1 && !_isMoving)
+            {
+                _endPos_V = new Vector3(transform.position.x - _stepSide, transform.position.y, transform.position.z);
+                //transform.position += new Vector3(-1 * _stepSide, 0, 0);
+                StartCoroutine(Move(_endPos_V, 1.0f));
             }
 
             if (Input.GetKeyDown(KeyCode.D) && transform.position.x < _boardInfo.transform.position.x - 1 + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1) && !_isMoving)
             {
                 _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
                 //transform.position += new Vector3(_stepSide, 0, 0);
-                StartCoroutine(Move(_endPos_V, 0.25f));
+                StartCoroutine(Move(_endPos_V, 1.0f));
             }
-        }
 
-        if (Input.GetKey(KeyCode.R))
-        {
-            if (_resetTimer >= 1.0f)
+            if (Input.GetKeyDown(KeyCode.RightArrow) && transform.position.x < _boardInfo.transform.position.x - 1 + _boardInfo.TileWidth * (_boardInfo.GetWidthPlayfield() - 1) && !_isMoving)
             {
-                _boardObserver.RestartGame(0);
+                _endPos_V = new Vector3(transform.position.x + _stepSide, transform.position.y, transform.position.z);
+                //transform.position += new Vector3(_stepSide, 0, 0);
+                StartCoroutine(Move(_endPos_V, 1.0f));
             }
-            _resetTimer += Time.deltaTime;
+
+            if (Input.GetKey(KeyCode.R))
+            {
+                if (_resetTimer >= 1.0f)
+                {
+                    _boardObserver.RestartGame(0);
+                }
+                _resetTimer += Time.deltaTime;
+            }
+            else
+            {
+                _resetTimer = 0f;
+            }
+
+            /*if (Input.GetKeyDown(KeyCode.P))
+            {
+                if (Time.timeScale == 1)
+                {
+                    Time.timeScale = 0;
+                    CanMove = false;
+                    showPauseScreen();
+                }
+            }
         }
-        else
+        if (Input.GetKeyDown(KeyCode.P))
         {
-            _resetTimer = 0f;
+            Time.timeScale = 1;
+            CanMove = true;
+            hidePauseScreen();
+        }*/
         }
     }
 
+        
     private void OnTriggerEnter(Collider tileCollider)
     {
         Vector3 currentTilePos = _boardObserver.SteppedOn(tileCollider.transform.parent.gameObject);
@@ -100,13 +153,13 @@ public class Player : MonoBehaviour
     // benutzt in PlayfieldObserver
     public void IsDead()
     {
-        GetComponent<MeshRenderer>().enabled = false;
+        //GetComponent<MeshRenderer>().enabled = false;
     }
 
     // benutzt in PlayfieldObserver
     public void IsAlive()
     {
-        GetComponent<MeshRenderer>().enabled = true;
+        //GetComponent<MeshRenderer>().enabled = true;
         transform.position = ResetPoint_V;
     }
 
@@ -133,4 +186,23 @@ public class Player : MonoBehaviour
             yield return null;
         }
     }
+
+    //Pause-Screen anzeigen
+    /*public void showPauseScreen()
+    {
+        foreach (GameObject p in pauseScreen)
+        {
+            p.SetActive(true);
+        }
+    }
+
+    //Pause-Screen verbergen
+    public void hidePauseScreen()
+    {
+        foreach (GameObject p in pauseScreen)
+        {
+            p.SetActive(false);
+        }
+    }*/
+
 }
